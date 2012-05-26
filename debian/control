@@ -1,0 +1,12 @@
+Source: kcontrol-ldap-manager-trinity
+Section: tde
+Priority: optional
+Maintainer: Timothy Pearson <kb9vqf@pearsoncomputing.net>
+Build-Depends: debhelper (>= 5), cdbs, tdelibs4-trinity-dev, libldap2-dev, automake, autoconf, libtool, libltdl-dev
+Standards-Version: 3.8.4
+
+Package: kcontrol-ldap-manager-trinity
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, heimdal-clients
+Description: LDAP realm management module for the TDE control center
+ LDAP Manager is a TDE control center module to manage users, groups, and machines in LDAP realms.

@@ -1,0 +1,17 @@
+[Desktop Entry]
+Encoding=UTF-8
+Exec=kcmshell ldap
+Icon=tdmconfig
+Type=Application
+
+X-KDE-ModuleType=Library
+X-KDE-Library=ldap
+X-KDE-HasReadOnlyMode=false
+X-KDE-ParentApp=kcontrol
+
+[Desktop Entry]
+Encoding=UTF-8
+Comment=A KControl tool for managing TDE connections to LDAP realms.
+Keywords=ldap manager
+Name=LDAP Realm Manager
+Categories=Qt;KDE;X-KDE-settings-components;
