@@ -1,0 +1,180 @@
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+	<class>LDAPGroupConfigBase</class>
+	<widget class="TQWidget">
+		<property name="name">
+			<cstring>LDAPGroupConfigBase</cstring>
+		</property>
+		<property name="geometry">
+			<rect>
+				<x>0</x>
+				<y>0</y>
+				<width>519</width>
+				<height>356</height>
+			</rect>
+		</property>
+		<grid>
+			<property name="name">
+				<cstring>unnamed</cstring>
+			</property>
+			<widget class="TQTabWidget" row="0" column="0">
+				<property name="name">
+					<cstring>TabWidget2</cstring>
+				</property>
+				<property name="enabled">
+					<bool>true</bool>
+				</property>
+				<widget class="TQWidget">
+					<property name="name">
+						<cstring>detailsTab</cstring>
+					</property>
+					<attribute name="title">
+						<string>Details</string>
+					</attribute>
+					<grid>
+						<property name="name">
+							<cstring>unnamed</cstring>
+						</property>
+						<widget class="TQLabel" row="0" column="0" colspan="1">
+							<property name="name">
+								<cstring>detailsIcon</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="0" column="1" colspan="1">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Group Name</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="0" column="2" colspan="1">
+							<property name="name">
+								<cstring>groupName</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="1" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Group ID</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="1" column="2" colspan="1">
+							<property name="name">
+								<cstring>groupID</cstring>
+							</property>
+							<property name="enabled">
+								<cstring>false</cstring>
+							</property>
+						</widget>
+						<widget class="TQLayoutWidget" row="2" column="0" colspan="3">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<grid>
+								<property name="name">
+									<cstring>unnamed</cstring>
+								</property>
+								<widget class="TQLabel" row="0" column="0" colspan="1">
+									<property name="name">
+										<cstring>unnamed</cstring>
+									</property>
+									<property name="text">
+										<cstring>Available Accounts</cstring>
+									</property>
+								</widget>
+								<widget class="TQLabel" row="0" column="2" colspan="1">
+									<property name="name">
+										<cstring>unnamed</cstring>
+									</property>
+									<property name="text">
+										<string>Selected Accounts</string>
+									</property>
+								</widget>
+								<widget class="KListBox" row="1" column="0" colspan="1">
+									<property name="name">
+										<cstring>availableAccounts</cstring>
+									</property>
+								</widget>
+								<widget class="TQLayoutWidget" row="1" column="1" colspan="1">
+									<property name="name">
+										<cstring>unnamed</cstring>
+									</property>
+									<grid>
+										<property name="name">
+											<cstring>unnamed</cstring>
+										</property>
+										<widget class="TQPushButton" row="0" column="0" colspan="1">
+											<property name="name">
+												<string>addToGroup</string>
+											</property>
+											<property name="text">
+												<string>Add</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="1" column="0" colspan="1">
+											<property name="name">
+												<string>removeFromGroup</string>
+											</property>
+											<property name="text">
+												<string>Remove</string>
+											</property>
+										</widget>
+										<spacer row="2" column="0">
+											<property name="name" stdset="0">
+												<cstring>Spacer1</cstring>
+											</property>
+											<property name="orientation">
+												<enum>Vertical</enum>
+											</property>
+											<property name="sizeType">
+												<enum>Expanding</enum>
+											</property>
+											<property name="sizeHint">
+												<size>
+													<width>20</width>
+													<height>20</height>
+												</size>
+											</property>
+										</spacer>
+									</grid>
+								</widget>
+								<widget class="KListBox" row="1" column="2" colspan="1">
+									<property name="name">
+										<cstring>selectedAccounts</cstring>
+									</property>
+								</widget>
+								<spacer row="10" column="0">
+									<property name="name" stdset="0">
+										<cstring>Spacer2</cstring>
+									</property>
+									<property name="orientation">
+										<enum>Vertical</enum>
+									</property>
+									<property name="sizeType">
+										<enum>Expanding</enum>
+									</property>
+									<property name="sizeHint">
+										<size>
+											<width>20</width>
+											<height>20</height>
+										</size>
+									</property>
+								</spacer>
+							</grid>
+						</widget>
+					</grid>
+				</widget>
+			</widget>
+		</grid>
+	</widget>
+	<includes>
+		<include location="local" impldecl="in implementation">LDAPGroupConfigBase.ui.h</include>
+	</includes>
+	<includes>
+		<include location="local" impldecl="in implementation">kdialog.h</include>
+	</includes>
+	<layoutdefaults spacing="3" margin="6"/>
+	<layoutfunctions spacing="KDialog::spacingHint" margin="KDialog::marginHint"/>
+</UI>
