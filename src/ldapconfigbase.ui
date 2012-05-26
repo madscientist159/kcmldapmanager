@@ -28,52 +28,36 @@
 					<cstring>tab</cstring>
 				</property>
 				<attribute name="title">
-				<string>LDAP Realms</string>
+				<string>Users</string>
 				</attribute>
 				<grid>
 					<property name="name">
 						<cstring>unnamed</cstring>
 					</property>
-					<widget class="TQGroupBox" row="0" column="0">
+					<widget class="TQLabel" row="0" column="0" colspan="0">
 						<property name="name">
-							<cstring>groupGlobal</cstring>
+							<cstring>user_icon</cstring>
 						</property>
-						<property name="title">
-							<string>Global Settings</string>
-						</property>
-						<grid>
-							<property name="name">
-								<cstring>unnamed</cstring>
-							</property>
-							<widget class="TQCheckBox" row="0" column="0" colspan="2">
-								<property name="name">
-									<cstring>systemEnableSupport</cstring>
-								</property>
-								<property name="text">
-									<string>&amp;Enable LDAP</string>
-								</property>
-							</widget>
-						</grid>
 					</widget>
-					<widget class="TQGroupBox" row="1" column="0">
+					<widget class="TQLabel" row="0" column="1" colspan="0">
 						<property name="name">
-							<cstring>groupRealms</cstring>
+							<cstring>unnamed</cstring>
 						</property>
-						<property name="title">
-							<string>Bonded Realms</string>
+						<property name="text">
+							<string>User Accounts in LDAP Realm</string>
 						</property>
-						<grid>
-							<property name="name">
-								<cstring>unnamed</cstring>
-							</property>
-						</grid>
-						</widget>
-					<spacer row="4" column="0">
+					</widget>
+					<widget class="KComboBox" row="0" column="3" colspan="0">
+						<property name="name">
+							<cstring>user_ldapRealm</cstring>
+						</property>
+					</widget>
+					<spacer row="0" column="2">
 						<property name="name" stdset="0">
-							<cstring>Spacer4</cstring>
+							<cstring>Spacer1</cstring>
 						</property>
 						<property name="orientation">
-							<enum>Vertical</enum>
+							<enum>Horizontal</enum>
 						</property>
 						<property name="sizeType">
 							<enum>Expanding</enum>
@@ -85,6 +69,222 @@
 							</size>
 						</property>
 					</spacer>
+					<widget class="TQSplitter" row="1" column="0" colspan="4">
+						<property name="name">
+							<cstring>splitter1</cstring>
+						</property>
+						<property name="orientation">
+							<enum>Vertical</enum>
+						</property>
+						<widget class="KListView" row="1" column="0" colspan="4">
+							<column>
+								<property name="text">
+									<string>Login Name</string>
+								</property>
+								<property name="clickable">
+									<bool>true</bool>
+								</property>
+								<property name="resizeable">
+									<bool>true</bool>
+								</property>
+							</column>
+							<column>
+								<property name="text">
+									<string>Real Name</string>
+								</property>
+								<property name="clickable">
+									<bool>true</bool>
+								</property>
+								<property name="resizeable">
+									<bool>true</bool>
+								</property>
+							</column>
+							<column>
+								<property name="text">
+									<string>UID</string>
+								</property>
+								<property name="clickable">
+									<bool>true</bool>
+								</property>
+								<property name="resizeable">
+									<bool>true</bool>
+								</property>
+							</column>
+							<property name="name">
+								<cstring>user_list</cstring>
+							</property>
+							<property name="rootIsDecorated">
+								<bool>false</bool>
+							</property>
+						</widget>
+						<widget class="TQLayoutWidget" row="2" column="0" colspan="4">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<grid>
+								<widget class="TQLayoutWidget" row="0" column="0">
+									<property name="name">
+										<cstring>groupControls</cstring>
+									</property>
+									<grid>
+										<property name="name">
+											<cstring>unnamed</cstring>
+										</property>
+										<widget class="TQPushButton" row="0" column="0" colspan="0">
+											<property name="name">
+												<cstring>user_buttonModify</cstring>
+											</property>
+											<property name="text">
+												<string>Modify</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="1" colspan="0">
+											<property name="name">
+												<cstring>user_buttonAdd</cstring>
+											</property>
+											<property name="text">
+												<string>New</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="2" colspan="0">
+											<property name="name">
+												<cstring>user_buttonDelete</cstring>
+											</property>
+											<property name="text">
+												<string>Delete</string>
+											</property>
+										</widget>
+									</grid>
+								</widget>
+								<widget class="TQGroupBox" row="1" column="0">
+									<property name="name">
+										<cstring>groupUserDetails</cstring>
+									</property>
+									<property name="title">
+										<string>Details</string>
+									</property>
+									<grid>
+										<property name="name">
+											<cstring>unnamed</cstring>
+										</property>
+										<widget class="TQLabel" row="0" column="0" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Login Name:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="0" column="1" colspan="0">
+											<property name="name">
+												<cstring>user_loginName</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="1" column="0" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>UID:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="1" column="1" colspan="0">
+											<property name="name">
+												<cstring>user_uid</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="2" column="0" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Primary Group:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="2" column="1" colspan="0">
+											<property name="name">
+												<cstring>user_primaryGroup</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="0" column="2" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Real Name:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>user_realName</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="1" column="2" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Status:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="1" column="3" colspan="0">
+											<property name="name">
+												<cstring>user_status</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="2" column="2" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Secondary Groups:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="2" column="3" colspan="0">
+											<property name="name">
+												<cstring>user_secondaryGroups</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+									</grid>
+								</widget>
+								<spacer row="4" column="0">
+									<property name="name" stdset="0">
+										<cstring>Spacer4</cstring>
+									</property>
+									<property name="orientation">
+										<enum>Vertical</enum>
+									</property>
+									<property name="sizeType">
+										<enum>Expanding</enum>
+									</property>
+									<property name="sizeHint">
+										<size>
+											<width>20</width>
+											<height>20</height>
+										</size>
+									</property>
+								</spacer>
+							</grid>
+						</widget>
+					</widget>
 				</grid>
 			</widget>
 		</widget>
