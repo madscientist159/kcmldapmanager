@@ -38,7 +38,7 @@
 
 typedef KGenericFactory<ldap, TQWidget> ldapFactory;
 
-K_EXPORT_COMPONENT_FACTORY( kcm_ldap, ldapFactory("kcmldap"))
+K_EXPORT_COMPONENT_FACTORY( kcm_ldapmanager, ldapFactory("kcmldapmanager"))
 
 ldap::ldap(TQWidget *parent, const char *name, const TQStringList&)
     : KCModule(parent, name), myAboutData(0)
