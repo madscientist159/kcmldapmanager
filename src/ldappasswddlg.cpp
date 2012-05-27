@@ -18,43 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _LDAP_H_
-#define _LDAP_H_
-
-#include <kcmodule.h>
-#include <kaboutdata.h>
+#include <klocale.h>
+#include <klineedit.h>
+#include <ktextedit.h>
+#include <knuminput.h>
+#include <kactionselector.h>
+#include <tqlistbox.h>
 #include <kpushbutton.h>
-#include <klistview.h>
-#include <kfileitem.h>
-#include <kglobalsettings.h>
-#include <tqpushbutton.h>
-#include <tqcombobox.h>
+#include <tqpixmap.h>
+#include <tqiconset.h>
+#include <tqlabel.h>
 
-#include "ldapconfigbase.h"
+#include "ldappasswddlg.h"
 
-class LDAPConfig: public KCModule
+LDAPPasswordDialog::LDAPPasswordDialog(TQWidget* parent, const char* name)
+	: KDialogBase(parent, name, true, i18n("LDAP Authentication"), Ok|Cancel, Ok, true)
 {
-	Q_OBJECT
+	m_base = new LDAPLogin(this);
 
-	public:
-		LDAPConfig( TQWidget *parent=0, const char *name=0, const TQStringList& = TQStringList() );
-		~LDAPConfig();
-		
-		virtual void load();
-		virtual void save();
-		virtual void defaults();
-		virtual int buttons();
-		virtual TQString quickHelp() const;
-		virtual const KAboutData *aboutData() const { return myAboutData; };
+	m_base->px_introSidebar->hide();
+	m_base->yad_string->hide();
 
-	private slots:
-		void processLockouts();
+	setMainWidget(m_base);
+}
 
-	private:
-		KAboutData *myAboutData;
-		KGlobalSettings *kgs;
+void LDAPPasswordDialog::slotOk() {
+	accept();
+}
 
-		LDAPConfigBase *base;
-};
-
-#endif
+#include "ldappasswddlg.moc"

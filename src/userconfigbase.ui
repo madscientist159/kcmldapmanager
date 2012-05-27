@@ -60,10 +60,10 @@
 								</sizepolicy>
 							</property>
 							<property name="frameShape">
-								<enum>None</enum>
+								<enum>NoFrame</enum>
 							</property>
 							<property name="frameShadow">
-								<enum>None</enum>
+								<enum>Plain</enum>
 							</property>
 							<property name="title">
 								<string></string>
@@ -194,7 +194,7 @@
 								<cstring>homeDirectory</cstring>
 							</property>
 							<property name="mode">
-								<cstring>Directory</cstring>
+								<number>18</number>
 							</property>
 						</widget>
 						<widget class="TQLabel" row="5" column="0" colspan="2">
@@ -389,7 +389,7 @@
 								<enum>NoFrame</enum>
 							</property>
 							<property name="frameShadow">
-								<enum>None</enum>
+								<enum>Plain</enum>
 							</property>
 							<property name="title">
 								<string></string>

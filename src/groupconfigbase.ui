@@ -70,7 +70,7 @@
 						</widget>
 						<widget class="TQLayoutWidget" row="2" column="0" colspan="3">
 							<property name="name">
-								<cstring>unnamed</cstring>
+								<cstring>unnamed_layoutwidget</cstring>
 							</property>
 							<grid>
 								<property name="name">
@@ -99,7 +99,7 @@
 								</widget>
 								<widget class="TQLayoutWidget" row="1" column="1" colspan="1">
 									<property name="name">
-										<cstring>unnamed</cstring>
+										<cstring>unnamed_layoutwidget</cstring>
 									</property>
 									<grid>
 										<property name="name">
@@ -107,7 +107,7 @@
 										</property>
 										<widget class="TQPushButton" row="0" column="0" colspan="1">
 											<property name="name">
-												<string>addToGroup</string>
+												<cstring>addToGroup</cstring>
 											</property>
 											<property name="text">
 												<string>Add</string>
@@ -115,7 +115,7 @@
 										</widget>
 										<widget class="TQPushButton" row="1" column="0" colspan="1">
 											<property name="name">
-												<string>removeFromGroup</string>
+												<cstring>removeFromGroup</cstring>
 											</property>
 											<property name="text">
 												<string>Remove</string>

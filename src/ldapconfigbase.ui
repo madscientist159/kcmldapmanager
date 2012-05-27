@@ -14,7 +14,7 @@
 	</property>
 	<grid>
 		<property name="name">
-			<cstring>unnamed</cstring>
+			<cstring>unnamed_grid1</cstring>
 		</property>
 		<widget class="TQTabWidget" row="0" column="0">
 			<property name="name">
@@ -32,7 +32,7 @@
 				</attribute>
 				<grid>
 					<property name="name">
-						<cstring>unnamed</cstring>
+						<cstring>unnamed_grid2</cstring>
 					</property>
 					<widget class="TQLabel" row="0" column="0" colspan="0">
 						<property name="name">
@@ -41,7 +41,7 @@
 					</widget>
 					<widget class="TQLabel" row="0" column="1" colspan="0">
 						<property name="name">
-							<cstring>unnamed</cstring>
+							<cstring>unnamed_label1</cstring>
 						</property>
 						<property name="text">
 							<string>User Accounts in LDAP Realm</string>
@@ -119,7 +119,7 @@
 						</widget>
 						<widget class="TQLayoutWidget" row="2" column="0" colspan="4">
 							<property name="name">
-								<cstring>unnamed</cstring>
+								<cstring>unnamed_layoutwidget1</cstring>
 							</property>
 							<grid>
 								<widget class="TQLayoutWidget" row="0" column="0">
@@ -128,7 +128,7 @@
 									</property>
 									<grid>
 										<property name="name">
-											<cstring>unnamed</cstring>
+											<cstring>unnamed_grid3</cstring>
 										</property>
 										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
@@ -165,11 +165,11 @@
 									</property>
 									<grid>
 										<property name="name">
-											<cstring>unnamed</cstring>
+											<cstring>unnamed_grid4</cstring>
 										</property>
 										<widget class="TQLabel" row="0" column="0" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label2</cstring>
 											</property>
 											<property name="text">
 												<string>Login Name:</string>
@@ -185,7 +185,7 @@
 										</widget>
 										<widget class="TQLabel" row="1" column="0" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label3</cstring>
 											</property>
 											<property name="text">
 												<string>UID:</string>
@@ -201,7 +201,7 @@
 										</widget>
 										<widget class="TQLabel" row="2" column="0" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label4</cstring>
 											</property>
 											<property name="text">
 												<string>Primary Group:</string>
@@ -217,7 +217,7 @@
 										</widget>
 										<widget class="TQLabel" row="0" column="2" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label5</cstring>
 											</property>
 											<property name="text">
 												<string>Real Name:</string>
@@ -233,7 +233,7 @@
 										</widget>
 										<widget class="TQLabel" row="1" column="2" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label6</cstring>
 											</property>
 											<property name="text">
 												<string>Status:</string>
@@ -249,7 +249,7 @@
 										</widget>
 										<widget class="TQLabel" row="2" column="2" colspan="0">
 											<property name="name">
-												<cstring>unnamed</cstring>
+												<cstring>unnamed_label7</cstring>
 											</property>
 											<property name="text">
 												<string>Secondary Groups:</string>
@@ -296,7 +296,7 @@
 				</attribute>
 				<grid>
 					<property name="name">
-						<cstring>unnamed</cstring>
+						<cstring>unnamed_grid5</cstring>
 					</property>
 					<widget class="TQLabel" row="0" column="0" colspan="0">
 						<property name="name">
@@ -305,7 +305,7 @@
 					</widget>
 					<widget class="TQLabel" row="0" column="1" colspan="0">
 						<property name="name">
-							<cstring>unnamed</cstring>
+							<cstring>unnamed_label8</cstring>
 						</property>
 						<property name="text">
 							<string>Groups in LDAP Realm</string>
@@ -372,7 +372,7 @@
 						</widget>
 						<widget class="TQLayoutWidget" row="2" column="0" colspan="4">
 							<property name="name">
-								<cstring>unnamed</cstring>
+								<cstring>unnamed_layoutwidget2</cstring>
 							</property>
 							<grid>
 								<widget class="TQLayoutWidget" row="0" column="0">
@@ -381,7 +381,7 @@
 									</property>
 									<grid>
 										<property name="name">
-											<cstring>unnamed</cstring>
+											<cstring>unnamed_grid6</cstring>
 										</property>
 										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
@@ -559,7 +559,7 @@
 						</widget>
 						<widget class="TQLayoutWidget" row="2" column="0" colspan="4">
 							<property name="name">
-								<cstring>unnamed</cstring>
+								<cstring>unnamed_layoutwidget3</cstring>
 							</property>
 							<grid>
 								<widget class="TQLayoutWidget" row="0" column="0">

@@ -18,43 +18,28 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _LDAP_H_
-#define _LDAP_H_
+#include <tqstringlist.h>
+#include <tqlabel.h>
+#include <tqmap.h>
 
-#include <kcmodule.h>
-#include <kaboutdata.h>
-#include <kpushbutton.h>
-#include <klistview.h>
-#include <kfileitem.h>
-#include <kglobalsettings.h>
-#include <tqpushbutton.h>
-#include <tqcombobox.h>
+#include <kapplication.h>
+#include <ksimpleconfig.h>
+#include <klocale.h>
+#include <kdebug.h>
+#include <kstandarddirs.h>
+#include <kiconloader.h>
+#include <dcopclient.h>
+#include <kprocess.h>
 
-#include "ldapconfigbase.h"
+#include "ldaplogindlg.h"
 
-class LDAPConfig: public KCModule
-{
-	Q_OBJECT
+LDAPLogin::LDAPLogin(TQWidget *parent, const char *name ) : LDAPLoginDlg(parent,name) {
 
-	public:
-		LDAPConfig( TQWidget *parent=0, const char *name=0, const TQStringList& = TQStringList() );
-		~LDAPConfig();
-		
-		virtual void load();
-		virtual void save();
-		virtual void defaults();
-		virtual int buttons();
-		virtual TQString quickHelp() const;
-		virtual const KAboutData *aboutData() const { return myAboutData; };
+	px_introSidebar->setPixmap(UserIcon("step3.png"));
+}
 
-	private slots:
-		void processLockouts();
+LDAPLogin::~LDAPLogin(){
+	// 
+}
 
-	private:
-		KAboutData *myAboutData;
-		KGlobalSettings *kgs;
-
-		LDAPConfigBase *base;
-};
-
-#endif
+#include "ldaplogindlg.moc"

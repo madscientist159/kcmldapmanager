@@ -18,43 +18,22 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _LDAP_H_
-#define _LDAP_H_
+#ifndef LDAPLOGIN_H
+#define LDAPLOGIN_H
 
-#include <kcmodule.h>
-#include <kaboutdata.h>
-#include <kpushbutton.h>
-#include <klistview.h>
-#include <kfileitem.h>
-#include <kglobalsettings.h>
-#include <tqpushbutton.h>
-#include <tqcombobox.h>
+#include "ldaplogindlgbase.h"
 
-#include "ldapconfigbase.h"
+class TQStringList;
 
-class LDAPConfig: public KCModule
-{
+/**LDAP login dialog
+  *@author Timothy Pearson
+  */
+
+class LDAPLogin : public LDAPLoginDlg  {
 	Q_OBJECT
-
-	public:
-		LDAPConfig( TQWidget *parent=0, const char *name=0, const TQStringList& = TQStringList() );
-		~LDAPConfig();
-		
-		virtual void load();
-		virtual void save();
-		virtual void defaults();
-		virtual int buttons();
-		virtual TQString quickHelp() const;
-		virtual const KAboutData *aboutData() const { return myAboutData; };
-
-	private slots:
-		void processLockouts();
-
-	private:
-		KAboutData *myAboutData;
-		KGlobalSettings *kgs;
-
-		LDAPConfigBase *base;
+public:
+	LDAPLogin(TQWidget *parent=0, const char *name=0);
+	~LDAPLogin();
 };
 
 #endif

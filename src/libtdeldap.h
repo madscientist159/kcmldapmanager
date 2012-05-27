@@ -18,43 +18,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _LDAP_H_
-#define _LDAP_H_
+#ifndef _LIBTDELDAP_H_
+#define _LIBTDELDAP_H_
 
-#include <kcmodule.h>
-#include <kaboutdata.h>
-#include <kpushbutton.h>
-#include <klistview.h>
-#include <kfileitem.h>
-#include <kglobalsettings.h>
-#include <tqpushbutton.h>
-#include <tqcombobox.h>
+#include <unistd.h>
 
-#include "ldapconfigbase.h"
+#include <tqstring.h>
+#include <tqdatetime.h>
+#include <tqvaluelist.h>
 
-class LDAPConfig: public KCModule
-{
-	Q_OBJECT
-
-	public:
-		LDAPConfig( TQWidget *parent=0, const char *name=0, const TQStringList& = TQStringList() );
-		~LDAPConfig();
-		
-		virtual void load();
-		virtual void save();
-		virtual void defaults();
-		virtual int buttons();
-		virtual TQString quickHelp() const;
-		virtual const KAboutData *aboutData() const { return myAboutData; };
-
-	private slots:
-		void processLockouts();
-
-	private:
-		KAboutData *myAboutData;
-		KGlobalSettings *kgs;
-
-		LDAPConfigBase *base;
+enum LDAPUserStatus {
+	USER_STATUS_ENABLED,
+	USER_STATUS_DISABLED
 };
 
-#endif
+typedef TQValueList<uid_t> UserList;
+typedef TQValueList<gid_t> GroupList;
+
+class LDAPUserInfo
+{
+	public:
+		TQString name;
+		uid_t uid;
+		TQString shell;
+		TQString homedir;
+		gid_t primary_gid;
+		GroupList grouplist;
+		LDAPUserStatus status;
+		TQDate password_last_changed;
+		bool password_expires;
+		TQDate password_expiration;
+		bool password_ages;
+		int new_password_interval;
+		int new_password_warn_interval;
+		int new_password_lockout_delay;
+		bool password_has_minimum_age;
+		int password_minimum_age;
+
+		TQString realName;
+		TQString organization;
+		// FIXME
+		// Add other attributes (cubicle, phone number, etc)
+};
+
+class LDAPGroupInfo
+{
+	public:
+		TQString name;
+		gid_t gid;
+		UserList userlist;
+};
+
+#endif // _LIBTDELDAP_H_

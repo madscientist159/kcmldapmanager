@@ -36,48 +36,63 @@
 
 #include "ldap.h"
 
-typedef KGenericFactory<ldap, TQWidget> ldapFactory;
+typedef KGenericFactory<LDAPConfig, TQWidget> LDAPConfigFactory;
 
-K_EXPORT_COMPONENT_FACTORY( kcm_ldapmanager, ldapFactory("kcmldapmanager"))
+K_EXPORT_COMPONENT_FACTORY( kcm_ldapmanager, LDAPConfigFactory("kcmldapmanager"))
 
-ldap::ldap(TQWidget *parent, const char *name, const TQStringList&)
+LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
     : KCModule(parent, name), myAboutData(0)
 {
-	// FIXME
-	// Add UI base widget to 'this'
+	TQVBoxLayout *layout = new TQVBoxLayout(this, KDialog::marginHint(), KDialog::spacingHint());
+	base = new LDAPConfigBase(this);
+	layout->add(base);
+
+	base->user_list->setAllColumnsShowFocus(true);
+	base->user_list->setFullWidth(true);
+	base->group_list->setAllColumnsShowFocus(true);
+	base->group_list->setFullWidth(true);
+	base->group_memberList->setAllColumnsShowFocus(true);
+	base->group_memberList->setFullWidth(true);
+	base->machine_list->setAllColumnsShowFocus(true);
+	base->machine_list->setFullWidth(true);
 	
 	load();
 	
-	KAboutData* about = new KAboutData("ldap", I18N_NOOP("TDE LDAP Manager"), "0.1",
-		I18N_NOOP("TDE LDAP Manager Control Panel Module"),
+	KAboutData* about = new KAboutData("ldap", I18N_NOOP("TDE LDAP Realm Manager"), "0.1",
+		I18N_NOOP("TDE LDAP Realm Manager Control Panel Module"),
 		KAboutData::License_GPL,
 		I18N_NOOP("(c) 2012 Timothy Pearson"), 0, 0);
 	
 	about->addAuthor("Timothy Pearson", 0, "kb9vqf@pearsoncomputing.net");
 	setAboutData( about );
+
+	processLockouts();
 };
 
-ldap::~ldap() {
+LDAPConfig::~LDAPConfig() {
 }
 
-void ldap::load() {
+void LDAPConfig::load() {
 	kgs = new KGlobalSettings();
-	KStandardDirs *ksd = new KStandardDirs();
 }
 
-void ldap::defaults() {
+void LDAPConfig::defaults() {
 	
 }
 
-void ldap::save() {
+void LDAPConfig::save() {
 	
 }
 
-int ldap::buttons() {
+void LDAPConfig::processLockouts() {
+	//
+}
+
+int LDAPConfig::buttons() {
 	return KCModule::Apply|KCModule::Help;
 }
 
-TQString ldap::quickHelp() const
+TQString LDAPConfig::quickHelp() const
 {
-	return i18n("This module configures which LDAP realms TDE uses for authentication.");
+	return i18n("This module manages users, groups, and machines in LDAP realms.");
 }
