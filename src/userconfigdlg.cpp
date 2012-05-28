@@ -18,28 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <tqstringlist.h>
-#include <tqlabel.h>
-#include <tqmap.h>
-
-#include <kapplication.h>
-#include <ksimpleconfig.h>
 #include <klocale.h>
-#include <kdebug.h>
-#include <kstandarddirs.h>
-#include <kiconloader.h>
-#include <dcopclient.h>
-#include <kprocess.h>
+#include <klineedit.h>
+#include <ktextedit.h>
+#include <knuminput.h>
+#include <kactionselector.h>
+#include <tqlistbox.h>
+#include <kpushbutton.h>
+#include <tqpixmap.h>
+#include <tqiconset.h>
+#include <tqlabel.h>
 
-#include "ldaplogindlg.h"
+#include "userconfigdlg.h"
 
-LDAPLogin::LDAPLogin(TQWidget *parent, const char *name ) : LDAPLoginDlg(parent,name) {
-
-	px_introSidebar->setPixmap(UserIcon("step3.png"));
+UserConfigDialog::UserConfigDialog(LDAPUserInfo user, TQWidget* parent, const char* name)
+	: KDialogBase(parent, name, true, i18n("LDAP User Properties"), Ok|Cancel, Ok, true), m_user(user)
+{
+	m_base = new LDAPUserConfigBase(this);
+	setMainWidget(m_base);
 }
 
-LDAPLogin::~LDAPLogin(){
-	// 
+void UserConfigDialog::slotOk() {
+	accept();
 }
 
-// #include "ldaplogindlg.moc"
+LDAPUserInfo UserConfigDialog::userProperties() {
+	return m_user;
+}
+
+#include "userconfigdlg.moc"

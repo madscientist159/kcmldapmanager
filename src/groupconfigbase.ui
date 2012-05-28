@@ -28,7 +28,7 @@
 						<cstring>detailsTab</cstring>
 					</property>
 					<attribute name="title">
-						<string>Details</string>
+						<string>POSIX</string>
 					</attribute>
 					<grid>
 						<property name="name">

@@ -18,28 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <tqstringlist.h>
-#include <tqlabel.h>
-#include <tqmap.h>
+#ifndef _USERCONFIGDIALOG_H_
+#define _USERCONFIGDIALOG_H_
 
-#include <kapplication.h>
-#include <ksimpleconfig.h>
-#include <klocale.h>
-#include <kdebug.h>
-#include <kstandarddirs.h>
-#include <kiconloader.h>
-#include <dcopclient.h>
-#include <kprocess.h>
+#include <kdialogbase.h>
 
-#include "ldaplogindlg.h"
+#include "libtdeldap.h"
+#include "userconfigbase.h"
 
-LDAPLogin::LDAPLogin(TQWidget *parent, const char *name ) : LDAPLoginDlg(parent,name) {
+class UserConfigDialog : public KDialogBase
+{
+	Q_OBJECT
 
-	px_introSidebar->setPixmap(UserIcon("step3.png"));
-}
+public:
+	UserConfigDialog(LDAPUserInfo user, TQWidget* parent = 0, const char* name = 0);
+	LDAPUserInfo userProperties();
 
-LDAPLogin::~LDAPLogin(){
-	// 
-}
+public slots:
+	void slotOk();
 
-// #include "ldaplogindlg.moc"
+public:
+	LDAPUserConfigBase *m_base;
+
+private:
+	LDAPUserInfo m_user;
+};
+
+#endif // _USERCONFIGDIALOG_H_

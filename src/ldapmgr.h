@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _LDAP_H_
-#define _LDAP_H_
+#ifndef _LDAPMGR_H_
+#define _LDAPMGR_H_
 
 #include <kcmodule.h>
 #include <kaboutdata.h>
@@ -30,7 +30,10 @@
 #include <tqpushbutton.h>
 #include <tqcombobox.h>
 
+#include "libtdeldap.h"
 #include "ldapconfigbase.h"
+
+class KSimpleConfig;
 
 class LDAPConfig: public KCModule
 {
@@ -49,12 +52,24 @@ class LDAPConfig: public KCModule
 
 	private slots:
 		void processLockouts();
+		void connectToRealm(const TQString&);
+		void populateUsers();
+		void updateUsersList();
+		void userHighlighted();
+		void modifySelectedUser();
+
+	private:
+		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
+		LDAPUserInfo selectedUser();
 
 	private:
 		KAboutData *myAboutData;
-		KGlobalSettings *kgs;
 
 		LDAPConfigBase *base;
+		KSimpleConfig *m_systemconfig;
+		LDAPManager *m_ldapmanager;
+
+		LDAPUserInfoList m_userInfoList;
 };
 
 #endif

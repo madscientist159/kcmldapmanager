@@ -122,6 +122,9 @@
 								<cstring>unnamed_layoutwidget1</cstring>
 							</property>
 							<grid>
+								<property name="margin">
+									<number>0</number>
+								</property>
 								<widget class="TQLayoutWidget" row="0" column="0">
 									<property name="name">
 										<cstring>userControls</cstring>
@@ -375,6 +378,9 @@
 								<cstring>unnamed_layoutwidget2</cstring>
 							</property>
 							<grid>
+								<property name="margin">
+									<number>0</number>
+								</property>
 								<widget class="TQLayoutWidget" row="0" column="0">
 									<property name="name">
 										<cstring>groupControls</cstring>
@@ -562,6 +568,9 @@
 								<cstring>unnamed_layoutwidget3</cstring>
 							</property>
 							<grid>
+								<property name="margin">
+									<number>0</number>
+								</property>
 								<widget class="TQLayoutWidget" row="0" column="0">
 									<property name="name">
 										<cstring>userControls</cstring>
