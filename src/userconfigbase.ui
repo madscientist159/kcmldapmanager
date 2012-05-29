@@ -406,7 +406,7 @@
 								</property>
 								<widget class="TQRadioButton" row="0" column="0" colspan="1">
 									<property name="name">
-										<cstring>userStatusEnabled</cstring>
+										<cstring>passwordExpireDisabled</cstring>
 									</property>
 								</widget>
 								<widget class="TQLabel" row="0" column="1" colspan="2">
@@ -419,10 +419,10 @@
 								</widget>
 								<widget class="TQRadioButton" row="1" column="0" colspan="1">
 									<property name="name">
-										<cstring>userStatusDisabled</cstring>
+										<cstring>passwordExpireEnabled</cstring>
 									</property>
 								</widget>
-								<widget class="KDateWidget" row="1" column="1" colspan="1">
+								<widget class="KDateTimeWidget" row="1" column="1" colspan="1">
 									<property name="name">
 										<cstring>expirationDate</cstring>
 									</property>

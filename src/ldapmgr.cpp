@@ -77,8 +77,11 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	base->user_status->setEnabled(false);
 	base->user_secondaryGroups->setEnabled(false);
 
-	connect(base->user_ldapRealm, TQT_SIGNAL(highlighted(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
+	connect(base->user_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
+	connect(base->group_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
+	connect(base->machine_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
+	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
 	
@@ -137,6 +140,11 @@ void LDAPConfig::processLockouts() {
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
+	// Update all drop down lists
+	base->user_ldapRealm->setCurrentItem(realm, false, -1);
+	base->group_ldapRealm->setCurrentItem(realm, false, -1);
+	base->machine_ldapRealm->setCurrentItem(realm, false, -1);
+
 	if (m_ldapmanager) {
 		if (m_ldapmanager->realm() == realm) {
 			return;
@@ -149,13 +157,22 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 	m_ldapmanager = new LDAPManager(realm, host);
 
 	populateUsers();
+	populateGroups();
 	// RAJA FIXME
-	// Groups?? Machines??
+	// Machines??
+
+	updateUsersList();
+	updateGroupsList();
+	// RAJA FIXME
+	// Machines??
 }
 
 void LDAPConfig::populateUsers() {
 	m_userInfoList = m_ldapmanager->users();
-	updateUsersList();
+}
+
+void LDAPConfig::populateGroups() {
+	m_groupInfoList = m_ldapmanager->groups();
 }
 
 void LDAPConfig::updateUsersList() {
@@ -164,6 +181,16 @@ void LDAPConfig::updateUsersList() {
 	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
 		LDAPUserInfo user = *it;
 		(void)new TQListViewItem(base->user_list, user.name, user.commonName, TQString("%1").arg(user.uid));
+	}
+	processLockouts();
+}
+
+void LDAPConfig::updateGroupsList() {
+	base->group_list->clear();
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		(void)new TQListViewItem(base->group_list, group.name, TQString("%1").arg(group.gid));
 	}
 	processLockouts();
 }
@@ -180,6 +207,30 @@ LDAPUserInfo LDAPConfig::findUserInfoByNameAndUID(TQString name, TQString uid) {
 	return LDAPUserInfo();
 }
 
+LDAPGroupInfo LDAPConfig::findGroupInfoByNameAndGID(TQString name, TQString gid) {
+	// Figure out which group is selected
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		if ((group.name == name) && (TQString("%1").arg(group.gid) == gid)) {
+			return group;
+		}
+	}
+	return LDAPGroupInfo();
+}
+
+LDAPGroupInfo LDAPConfig::findGroupInfoByGID(TQString gid) {
+	// Figure out which group is selected
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		if (TQString("%1").arg(group.gid) == gid) {
+			return group;
+		}
+	}
+	return LDAPGroupInfo();
+}
+
 LDAPUserInfo LDAPConfig::selectedUser() {
 	TQListViewItem* lvi = base->user_list->currentItem();
 	if (!lvi) {
@@ -188,16 +239,81 @@ LDAPUserInfo LDAPConfig::selectedUser() {
 	return findUserInfoByNameAndUID(lvi->text(0), lvi->text(2));
 }
 
+LDAPGroupInfo LDAPConfig::selectedGroup() {
+	TQListViewItem* lvi = base->group_list->currentItem();
+	if (!lvi) {
+		return LDAPGroupInfo();
+	}
+	return findGroupInfoByNameAndGID(lvi->text(0), lvi->text(1));
+}
+
+LDAPUserInfo LDAPConfig::findUserByDistinguishedName(TQString dn) {
+	LDAPUserInfoList::Iterator it;
+	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
+		LDAPUserInfo user = *it;
+		if (user.distinguishedName == dn) {
+			return user;
+		}
+	}
+	return LDAPUserInfo();
+}
+
+LDAPGroupInfoList LDAPConfig::findGroupsForUserByDistinguishedName(TQString dn) {
+	LDAPGroupInfoList groups;
+
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		if (group.userlist.contains(dn)) {
+			groups.append(group);
+		}
+	}
+
+	return groups;
+}
+
+LDAPUserInfoList LDAPConfig::userList() {
+	return m_userInfoList;
+}
+
+LDAPGroupInfoList LDAPConfig::groupList() {
+	return m_groupInfoList;
+}
+
 void LDAPConfig::userHighlighted() {
 	// Show information in the quick view area
 	LDAPUserInfo user = selectedUser();
 
 	base->user_loginName->setText(user.name);
 	base->user_uid->setText(TQString("%1").arg(user.uid));
-	base->user_primaryGroup->setText(TQString("%1").arg(user.primary_gid));
+	base->user_primaryGroup->setText(findGroupInfoByGID(TQString("%1").arg(user.primary_gid)).name);
 	base->user_realName->setText(user.commonName);
 	base->user_status->setText((user.status == KRB5_DISABLED_ACCOUNT)?"Disabled":"Enabled");
-	base->user_secondaryGroups->setText("RAJA FIXME");
+	LDAPGroupInfoList groupsForUser = findGroupsForUserByDistinguishedName(user.distinguishedName);
+	TQString groupsForUserText;
+	LDAPGroupInfoList::Iterator it;
+	for (it = groupsForUser.begin(); it != groupsForUser.end(); ++it) {
+		if (it != groupsForUser.begin()) {
+			groupsForUserText.append(",");
+		}
+		groupsForUserText.append((*it).name);
+	}
+	base->user_secondaryGroups->setText(groupsForUserText);
+
+	processLockouts();
+}
+
+void LDAPConfig::groupHighlighted() {
+	// Show information in the quick view area
+	LDAPGroupInfo group = selectedGroup();
+
+	base->group_memberList->clear();
+	for ( TQStringList::Iterator it = group.userlist.begin(); it != group.userlist.end(); ++it ) {
+		LDAPUserInfo user = findUserByDistinguishedName(*it);
+		(void)new TQListViewItem(base->group_memberList, user.name, user.commonName, TQString("%1").arg(user.uid));
+	}
+
+	// RAJA FIXME
 
 	processLockouts();
 }
@@ -207,6 +323,7 @@ void LDAPConfig::modifySelectedUser() {
 	LDAPUserInfo user = selectedUser();
 
 	// RAJA FIXME
+	// Reload user data from LDAP before launching dialog!!!!  Otherwise people who leave the LDAP manager open for days at a time (admins) will end up inserting stale data into the LDAP database!!!
 	UserConfigDialog userconfigdlg(user, this);
 	if (userconfigdlg.exec() == TQDialog::Accepted) {
 	}

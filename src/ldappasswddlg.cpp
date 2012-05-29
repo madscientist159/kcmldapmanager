@@ -36,9 +36,6 @@ LDAPPasswordDialog::LDAPPasswordDialog(TQWidget* parent, const char* name)
 {
 	m_base = new LDAPLogin(this);
 
-	m_base->px_introSidebar->hide();
-	m_base->yad_string->hide();
-
 	setMainWidget(m_base);
 }
 

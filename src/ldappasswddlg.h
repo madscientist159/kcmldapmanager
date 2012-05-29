@@ -22,6 +22,7 @@
 #define _LDAPPASSWORDDIALOG_H_
 
 #include <kdialogbase.h>
+#include <kcombobox.h>
 
 #include "ldaplogindlg.h"
 

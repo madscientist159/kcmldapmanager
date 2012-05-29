@@ -26,22 +26,27 @@
 #include "libtdeldap.h"
 #include "userconfigbase.h"
 
+#define AVAILABLE_SHELLS "/bin/bash /bin/sh /bin/dash /bin/rbash /usr/bin/screen"
+
 class UserConfigDialog : public KDialogBase
 {
 	Q_OBJECT
 
 public:
-	UserConfigDialog(LDAPUserInfo user, TQWidget* parent = 0, const char* name = 0);
+	UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent = 0, const char* name = 0);
 	LDAPUserInfo userProperties();
 
 public slots:
 	void slotOk();
+	void processLockouts();
 
 public:
 	LDAPUserConfigBase *m_base;
 
 private:
 	LDAPUserInfo m_user;
+	LDAPConfig* m_ldapconfig;
+	TQString m_prevPrimaryGroup;
 };
 
 #endif // _USERCONFIGDIALOG_H_

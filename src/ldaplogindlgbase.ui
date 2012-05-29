@@ -8,9 +8,9 @@
 		<property name="name">
 			<cstring>unnamed</cstring>
 		</property>
-		<widget class="TQLabel" row="0" column="0" rowspan="9" colspan="1">
+		<widget class="TQLabel" row="1" column="0" rowspan="1" colspan="1">
 			<property name="name">
-				<cstring>px_introSidebar</cstring>
+				<cstring>px_icon</cstring>
 			</property>
 			<property name="sizePolicy">
 				<sizepolicy>
@@ -20,17 +20,11 @@
 					<verstretch>0</verstretch>
 				</sizepolicy>
 			</property>
-			<property name="minimumSize">
-				<size>
-					<width>170</width>
-					<height>430</height>
-				</size>
-			</property>
 			<property name="frameShape">
-				<enum>Panel</enum>
+				<enum>NoFrame</enum>
 			</property>
 			<property name="frameShadow">
-				<enum>Sunken</enum>
+				<enum>Plain</enum>
 			</property>
 			<property name="scaledContents">
 				<bool>true</bool>
@@ -39,23 +33,15 @@
 				<number>0</number>
 			</property>
 		</widget>
-		<widget class="TQLabel" row="0" column="1" colspan="2">
-			<property name="name">
-				<cstring>yad_string</cstring>
-			</property>
-			<property name="text">
-				<string>&lt;h3&gt;You're almost done!&lt;/h3&gt;</string>
-			</property>
-		</widget>
 		<widget class="TQLabel" row="1" column="1" colspan="2">
 			<property name="name">
 				<cstring>passprompt</cstring>
 			</property>
 			<property name="text">
-				<string>Please provide LDAP realm administrator credentials below to complete the bonding process</string>
+				<string>Please provide appropriate LDAP credentials below</string>
 			</property>
 		</widget>
-		<widget class="TQLabel" row="2" column="1">
+		<widget class="TQLabel" row="2" column="0" colspan="2">
 			<property name="name">
 				<cstring>unnamed</cstring>
 			</property>
@@ -68,7 +54,7 @@
 				<cstring>ldapAdminUsername</cstring>
 			</property>
 		</widget>
-		<widget class="TQLabel" row="3" column="1">
+		<widget class="TQLabel" row="3" column="0" colspan="2">
 			<property name="name">
 				<cstring>unnamed</cstring>
 			</property>
@@ -81,7 +67,7 @@
 				<cstring>ldapAdminPassword</cstring>
 			</property>
 		</widget>
-		<widget class="TQLabel" row="4" column="1">
+		<widget class="TQLabel" row="4" column="0" colspan="2">
 			<property name="name">
 				<cstring>unnamed</cstring>
 			</property>
@@ -89,39 +75,11 @@
 				<string>LDAP Realm</string>
 			</property>
 		</widget>
-		<widget class="KLineEdit" row="4" column="2">
+		<widget class="KComboBox" row="4" column="2">
 			<property name="name">
 				<cstring>ldapAdminRealm</cstring>
 			</property>
 		</widget>
-		<spacer row="5" column="1">
-			<property name="name">
-				<cstring>Spacer6</cstring>
-			</property>
-			<property name="orientation">
-				<enum>Vertical</enum>
-			</property>
-			<property name="sizeType">
-				<enum>Fixed</enum>
-			</property>
-			<property name="sizeHint">
-				<size>
-				<width>20</width>
-				<height>30</height>
-				</size>
-			</property>
-			</spacer>
-			<spacer row="7" column="1">
-			<property name="name">
-				<cstring>Spacer5</cstring>
-			</property>
-			<property name="orientation">
-				<enum>Vertical</enum>
-			</property>
-			<property name="sizeType">
-				<enum>Expanding</enum>
-			</property>
-		</spacer>
 	</grid>
 </widget>
 <layoutdefaults spacing="3" margin="6"/>

@@ -54,13 +54,25 @@ class LDAPConfig: public KCModule
 		void processLockouts();
 		void connectToRealm(const TQString&);
 		void populateUsers();
+		void populateGroups();
 		void updateUsersList();
+		void updateGroupsList();
 		void userHighlighted();
+		void groupHighlighted();
 		void modifySelectedUser();
 
-	private:
+	public:
 		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
+		LDAPGroupInfo findGroupInfoByNameAndGID(TQString name, TQString gid);
+		LDAPGroupInfo findGroupInfoByGID(TQString gid);
+		LDAPUserInfo findUserByDistinguishedName(TQString dn);
+		LDAPGroupInfoList findGroupsForUserByDistinguishedName(TQString dn);
+		LDAPUserInfoList userList();
+		LDAPGroupInfoList groupList();
+
+	private:
 		LDAPUserInfo selectedUser();
+		LDAPGroupInfo selectedGroup();
 
 	private:
 		KAboutData *myAboutData;
@@ -70,6 +82,7 @@ class LDAPConfig: public KCModule
 		LDAPManager *m_ldapmanager;
 
 		LDAPUserInfoList m_userInfoList;
+		LDAPGroupInfoList m_groupInfoList;
 };
 
 #endif

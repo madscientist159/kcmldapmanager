@@ -74,6 +74,7 @@ class LDAPUserInfo
 
 	public:
 		bool informationValid;
+		TQString distinguishedName;
 
 		TQString name;
 		uid_t uid;
@@ -150,10 +151,11 @@ class LDAPGroupInfo
 
 	public:
 		bool informationValid;
+		TQString distinguishedName;
 
 		TQString name;
 		gid_t gid;
-		UserList userlist;
+		TQStringList userlist;
 };
 
 typedef TQValueList<LDAPUserInfo> LDAPUserInfoList;
@@ -170,6 +172,7 @@ class LDAPManager : public TQObject {
 		int bind();
 		int unbind(bool force);
 		LDAPUserInfoList users();
+		LDAPGroupInfoList groups();
 
 	private:
 		TQString m_realm;

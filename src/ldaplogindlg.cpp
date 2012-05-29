@@ -30,12 +30,13 @@
 #include <kiconloader.h>
 #include <dcopclient.h>
 #include <kprocess.h>
+#include <kcombobox.h>
 
 #include "ldaplogindlg.h"
 
 LDAPLogin::LDAPLogin(TQWidget *parent, const char *name ) : LDAPLoginDlg(parent,name) {
-
-	px_introSidebar->setPixmap(UserIcon("step3.png"));
+	px_icon->setPixmap(SmallIcon("password.png"));
+	ldapAdminRealm->setEditable(true);
 }
 
 LDAPLogin::~LDAPLogin(){
