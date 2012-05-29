@@ -52,6 +52,7 @@ TQString LDAPManager::realm() {
 }
 
 int LDAPManager::bind() {
+printf("[RAJA DEBUG 600.0] In LDAPManager::bind()\n\r"); fflush(stdout);
 	if (m_ldap) {
 		return 0;
 	}
@@ -164,6 +165,7 @@ int LDAPManager::bind() {
 }
 
 int LDAPManager::unbind(bool force) {
+printf("[RAJA DEBUG 600.1] In LDAPManager::unbind()\n\r"); fflush(stdout);
 	if (!m_ldap) {
 		return 0;
 	}
@@ -177,6 +179,228 @@ int LDAPManager::unbind(bool force) {
 		m_ldap = 0;
 	}
 	return retcode;
+}
+
+LDAPUserInfo LDAPManager::parseLDAPUserRecord(LDAPMessage* entry) {
+	int i;
+	char* dn = NULL;
+	char* attr;
+	struct berval **vals;
+	BerElement* ber;
+
+	LDAPUserInfo userinfo;
+
+	if((dn = ldap_get_dn(m_ldap, entry)) != NULL) {
+		printf("Returned dn: %s\n", dn);
+		userinfo.distinguishedName = dn;
+		TQStringList dnParts = TQStringList::split(",", dn);
+		TQString id = dnParts[0];
+		if (id.startsWith("uid=")) {
+			id = id.remove(0, 4);
+			userinfo.name = id;
+		}
+		ldap_memfree(dn);
+	}
+
+	for( attr = ldap_first_attribute(m_ldap, entry, &ber); attr != NULL; attr = ldap_next_attribute(m_ldap, entry, ber)) {
+		if ((vals = ldap_get_values_len(m_ldap, entry, attr)) != NULL)  {
+printf("[RAJA DEBUG 100.3] %s: %s\n\r", attr, vals[i]->bv_val);
+			userinfo.informationValid = true;
+			TQString ldap_field = attr;
+			i=0;
+			if (ldap_field == "uidNumber") {
+				userinfo.uid = atoi(vals[i]->bv_val);
+			}
+			else if (ldap_field == "loginShell") {
+				userinfo.shell = vals[i]->bv_val;
+			}
+			else if (ldap_field == "homeDirectory") {
+				userinfo.homedir = vals[i]->bv_val;
+			}
+			else if (ldap_field == "gidNumber") {
+				userinfo.primary_gid = atoi(vals[i]->bv_val);
+			}
+			else if (ldap_field == "krb5KDCFlags") {
+				userinfo.status = (LDAPKRB5Flags)(atoi(vals[i]->bv_val));
+			}
+			else if (ldap_field == "createTimestamp") {		// YYYYMMDD000000Z
+				TQString formattedDate = vals[i]->bv_val;
+				formattedDate.insert(4,"-");
+				formattedDate.insert(7,"-");
+				formattedDate.insert(10,"T");
+				formattedDate.insert(13,":");
+				formattedDate.insert(16,":");
+				formattedDate.remove(19, 1);
+				userinfo.account_created = TQDateTime::fromString(formattedDate, TQt::ISODate);
+			}
+			else if (ldap_field == "modifyTimestamp") {		// YYYYMMDD000000Z
+				TQString formattedDate = vals[i]->bv_val;
+				formattedDate.insert(4,"-");
+				formattedDate.insert(7,"-");
+				formattedDate.insert(10,"T");
+				formattedDate.insert(13,":");
+				formattedDate.insert(16,":");
+				formattedDate.remove(19, 1);
+				userinfo.account_modified = TQDateTime::fromString(formattedDate, TQt::ISODate);
+			}
+				// FIXME
+				// These two attributes do not seem to be available with a Heimdal KDC
+				// userinfo.password_last_changed = vals[i]->bv_val;
+				// userinfo.password_expires = vals[i]->bv_val;
+			else if (ldap_field == "krb5PasswordEnd") {		// YYYYMMDD000000Z
+				TQString formattedDate = vals[i]->bv_val;
+				formattedDate.insert(4,"-");
+				formattedDate.insert(7,"-");
+				formattedDate.insert(10,"T");
+				formattedDate.insert(13,":");
+				formattedDate.insert(16,":");
+				formattedDate.remove(19, 1);
+				userinfo.password_expiration = TQDateTime::fromString(formattedDate, TQt::ISODate);
+			}
+				// FIXME
+				// These six(!) attributes do not seem to be available with a Heimdal KDC
+				// userinfo.password_ages = vals[i]->bv_val;
+				// userinfo.new_password_interval = vals[i]->bv_val;
+				// userinfo.new_password_warn_interval = vals[i]->bv_val;
+				// userinfo.new_password_lockout_delay = vals[i]->bv_val;
+				// userinfo.password_has_minimum_age = vals[i]->bv_val;
+				// userinfo.password_minimum_age = vals[i]->bv_val;
+			else if (ldap_field == "krb5MaxLife") {			// units: hours
+				userinfo.maximum_ticket_lifetime = atoi(vals[i]->bv_val);
+			}
+			else if (ldap_field == "cn") {
+				userinfo.commonName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "givenName") {
+				userinfo.givenName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "sn") {
+				userinfo.surName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "initials") {
+				userinfo.initials = vals[i]->bv_val;
+			}
+			else if (ldap_field == "title") {
+				userinfo.title = vals[i]->bv_val;
+			}
+			else if (ldap_field == "mail") {
+				userinfo.email = vals[i]->bv_val;
+			}
+			else if (ldap_field == "description") {
+				userinfo.description = vals[i]->bv_val;
+			}
+			else if (ldap_field == "l") {
+				userinfo.locality = vals[i]->bv_val;
+			}
+			else if (ldap_field == "telephoneNumber") {
+				userinfo.telephoneNumber = vals[i]->bv_val;
+			}
+			else if (ldap_field == "facsimileTelephoneNumber") {
+				userinfo.faxNumber = vals[i]->bv_val;
+			}
+			else if (ldap_field == "homePhone") {
+				userinfo.homePhone = vals[i]->bv_val;
+			}
+			else if (ldap_field == "mobile") {
+				userinfo.mobilePhone = vals[i]->bv_val;
+			}
+			else if (ldap_field == "pager") {
+				userinfo.pagerNumber = vals[i]->bv_val;
+			}
+				// FIXME
+				// This attribute is not present in my current LDAP schema
+				// userinfo.website = vals[i]->bv_val;
+			else if (ldap_field == "postOfficeBox") {
+				userinfo.poBox = vals[i]->bv_val;
+			}
+			else if (ldap_field == "street") {
+				userinfo.street = vals[i]->bv_val;
+			}
+			else if (ldap_field == "postalAddress") {
+				userinfo.address = vals[i]->bv_val;
+			}
+			else if (ldap_field == "st") {
+				userinfo.state = vals[i]->bv_val;
+			}
+			else if (ldap_field == "postalCode") {
+				userinfo.postcode = vals[i]->bv_val;
+			}
+			else if (ldap_field == "registeredAddress") {
+				userinfo.registeredAddress = vals[i]->bv_val;
+			}
+			else if (ldap_field == "homePostalAddress") {
+				userinfo.homeAddress = vals[i]->bv_val;
+			}
+			else if (ldap_field == "seeAlso") {
+				userinfo.seeAlso = vals[i]->bv_val;
+			}
+			else if (ldap_field == "physicalDeliveryOfficeName") {
+				userinfo.deliveryOffice = vals[i]->bv_val;
+			}
+			else if (ldap_field == "departmentNumber") {
+				userinfo.department = vals[i]->bv_val;
+			}
+			else if (ldap_field == "roomNumber") {
+				userinfo.roomNumber = vals[i]->bv_val;
+			}
+			else if (ldap_field == "employeeType") {
+				userinfo.employeeType = vals[i]->bv_val;
+			}
+			else if (ldap_field == "employeeNumber") {
+				userinfo.employeeNumber = vals[i]->bv_val;
+			}
+				// FIXME
+				// These two attributes are not present in my current LDAP schema
+// 						userinfo.manager = vals[i]->bv_val;
+// 						userinfo.secretary = vals[i]->bv_val;
+			else if (ldap_field == "internationaliSDNNumber") {
+				userinfo.isdnNumber = vals[i]->bv_val;
+			}
+						// FIXME
+						// This attribute is not present in my current LDAP schema
+// 						userinfo.teletexID = vals[i]->bv_val;
+			else if (ldap_field == "telexNumber") {
+				userinfo.telexNumber = vals[i]->bv_val;
+			}
+						// FIXME
+						// This attribute is not present in my current LDAP schema
+// 						userinfo.preferredDelivery = vals[i]->bv_val;
+			else if (ldap_field == "destinationIndicator") {
+				userinfo.destinationIndicator = vals[i]->bv_val;
+			}
+			else if (ldap_field == "x121Address") {
+				userinfo.x121Address = vals[i]->bv_val;
+			}
+			else if (ldap_field == "displayName") {
+				userinfo.displayName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "preferredLanguage") {
+				userinfo.preferredLanguage = vals[i]->bv_val;
+			}
+						// FIXME
+						// This attribute is not present in my current LDAP schema
+// 						userinfo.uniqueIdentifier = vals[i]->bv_val;
+			else if (ldap_field == "preferredLanguage") {
+				userinfo.businessCategory = vals[i]->bv_val;
+			}
+			else if (ldap_field == "carLicense") {
+				userinfo.carLicense = vals[i]->bv_val;
+			}
+						// FIXME
+						// This attribute is not present in my current LDAP schema
+// 						userinfo.notes = vals[i]->bv_val;
+			ldap_value_free_len(vals);
+		}
+		ldap_memfree(attr);
+	}
+
+	if (ber != NULL) {
+		ber_free(ber, 0);
+	}
+
+	printf("\n\r");
+
+	return userinfo;
 }
 
 LDAPUserInfoList LDAPManager::users() {
@@ -203,235 +427,139 @@ printf("[RAJA DEBUG 100.1] In LDAPManager::users() bind was OK\n\r"); fflush(std
 printf("[RAJA DEBUG 100.2] The number of entries returned was %d\n\n", ldap_count_entries(m_ldap, msg));
 
 		// Iterate through the returned entries
-		char* dn = NULL;
-		char* attr;
-		struct berval **vals;
-		BerElement* ber;
 		LDAPMessage* entry;
-		int i;
 		for(entry = ldap_first_entry(m_ldap, msg); entry != NULL; entry = ldap_next_entry(m_ldap, entry)) {
-			LDAPUserInfo userinfo;
-
-			if((dn = ldap_get_dn(m_ldap, entry)) != NULL) {
-				printf("Returned dn: %s\n", dn);
-				userinfo.distinguishedName = dn;
-				TQStringList dnParts = TQStringList::split(",", dn);
-				TQString id = dnParts[0];
-				if (id.startsWith("uid=")) {
-					id = id.remove(0, 4);
-					userinfo.name = id;
-				}
-				ldap_memfree(dn);
-			}
-
-			for( attr = ldap_first_attribute(m_ldap, entry, &ber); attr != NULL; attr = ldap_next_attribute(m_ldap, entry, ber)) {
-				if ((vals = ldap_get_values_len(m_ldap, entry, attr)) != NULL)  {
-printf("[RAJA DEBUG 100.3] %s: %s\n\r", attr, vals[i]->bv_val);
-					userinfo.informationValid = true;
-					TQString ldap_field = attr;
-					i=0;
-					if (ldap_field == "uidNumber") {
-						userinfo.uid = atoi(vals[i]->bv_val);
-					}
-					else if (ldap_field == "loginShell") {
-						userinfo.shell = vals[i]->bv_val;
-					}
-					else if (ldap_field == "homeDirectory") {
-						userinfo.homedir = vals[i]->bv_val;
-					}
-					else if (ldap_field == "gidNumber") {
-						userinfo.primary_gid = atoi(vals[i]->bv_val);
-					}
-					else if (ldap_field == "krb5KDCFlags") {
-						userinfo.status = (LDAPKRB5Flags)(atoi(vals[i]->bv_val));
-					}
-					else if (ldap_field == "createTimestamp") {		// YYYYMMDD000000Z
-						TQString formattedDate = vals[i]->bv_val;
-						formattedDate.insert(4,"-");
-						formattedDate.insert(7,"-");
-						formattedDate.insert(10,"T");
-						formattedDate.insert(13,":");
-						formattedDate.insert(16,":");
-						formattedDate.remove(19, 1);
-						userinfo.account_created = TQDateTime::fromString(formattedDate, TQt::ISODate);
-					}
-					else if (ldap_field == "modifyTimestamp") {		// YYYYMMDD000000Z
-						TQString formattedDate = vals[i]->bv_val;
-						formattedDate.insert(4,"-");
-						formattedDate.insert(7,"-");
-						formattedDate.insert(10,"T");
-						formattedDate.insert(13,":");
-						formattedDate.insert(16,":");
-						formattedDate.remove(19, 1);
-						userinfo.account_modified = TQDateTime::fromString(formattedDate, TQt::ISODate);
-					}
-						// FIXME
-						// These two attributes do not seem to be available with a Heimdal KDC
-						// userinfo.password_last_changed = vals[i]->bv_val;
-						// userinfo.password_expires = vals[i]->bv_val;
-					else if (ldap_field == "krb5PasswordEnd") {		// YYYYMMDD000000Z
-						TQString formattedDate = vals[i]->bv_val;
-						formattedDate.insert(4,"-");
-						formattedDate.insert(7,"-");
-						formattedDate.insert(10,"T");
-						formattedDate.insert(13,":");
-						formattedDate.insert(16,":");
-						formattedDate.remove(19, 1);
-						userinfo.password_expiration = TQDateTime::fromString(formattedDate, TQt::ISODate);
-					}
-						// FIXME
-						// These six(!) attributes do not seem to be available with a Heimdal KDC
-						// userinfo.password_ages = vals[i]->bv_val;
-						// userinfo.new_password_interval = vals[i]->bv_val;
-						// userinfo.new_password_warn_interval = vals[i]->bv_val;
-						// userinfo.new_password_lockout_delay = vals[i]->bv_val;
-						// userinfo.password_has_minimum_age = vals[i]->bv_val;
-						// userinfo.password_minimum_age = vals[i]->bv_val;
-					else if (ldap_field == "krb5MaxLife") {			// units: hours
-						userinfo.maximum_ticket_lifetime = atoi(vals[i]->bv_val);
-					}
-					else if (ldap_field == "cn") {
-						userinfo.commonName = vals[i]->bv_val;
-					}
-					else if (ldap_field == "givenName") {
-						userinfo.givenName = vals[i]->bv_val;
-					}
-					else if (ldap_field == "sn") {
-						userinfo.surName = vals[i]->bv_val;
-					}
-					else if (ldap_field == "initials") {
-						userinfo.initials = vals[i]->bv_val;
-					}
-					else if (ldap_field == "title") {
-						userinfo.title = vals[i]->bv_val;
-					}
-					else if (ldap_field == "mail") {
-						userinfo.email = vals[i]->bv_val;
-					}
-					else if (ldap_field == "description") {
-						userinfo.description = vals[i]->bv_val;
-					}
-					else if (ldap_field == "l") {
-						userinfo.locality = vals[i]->bv_val;
-					}
-					else if (ldap_field == "telephoneNumber") {
-						userinfo.telephoneNumber = vals[i]->bv_val;
-					}
-					else if (ldap_field == "facsimileTelephoneNumber") {
-						userinfo.faxNumber = vals[i]->bv_val;
-					}
-					else if (ldap_field == "homePhone") {
-						userinfo.homePhone = vals[i]->bv_val;
-					}
-					else if (ldap_field == "mobile") {
-						userinfo.mobilePhone = vals[i]->bv_val;
-					}
-					else if (ldap_field == "pager") {
-						userinfo.pagerNumber = vals[i]->bv_val;
-					}
-						// FIXME
-						// This attribute is not present in my current LDAP schema
-						// userinfo.website = vals[i]->bv_val;
-					else if (ldap_field == "postOfficeBox") {
-						userinfo.poBox = vals[i]->bv_val;
-					}
-					else if (ldap_field == "street") {
-						userinfo.street = vals[i]->bv_val;
-					}
-					else if (ldap_field == "postalAddress") {
-						userinfo.address = vals[i]->bv_val;
-					}
-					else if (ldap_field == "st") {
-						userinfo.state = vals[i]->bv_val;
-					}
-					else if (ldap_field == "postalCode") {
-						userinfo.postcode = vals[i]->bv_val;
-					}
-					else if (ldap_field == "registeredAddress") {
-						userinfo.registeredAddress = vals[i]->bv_val;
-					}
-					else if (ldap_field == "homePostalAddress") {
-						userinfo.homeAddress = vals[i]->bv_val;
-					}
-					else if (ldap_field == "seeAlso") {
-						userinfo.seeAlso = vals[i]->bv_val;
-					}
-					else if (ldap_field == "physicalDeliveryOfficeName") {
-						userinfo.deliveryOffice = vals[i]->bv_val;
-					}
-					else if (ldap_field == "departmentNumber") {
-						userinfo.department = vals[i]->bv_val;
-					}
-					else if (ldap_field == "roomNumber") {
-						userinfo.roomNumber = vals[i]->bv_val;
-					}
-					else if (ldap_field == "employeeType") {
-						userinfo.employeeType = vals[i]->bv_val;
-					}
-					else if (ldap_field == "employeeNumber") {
-						userinfo.employeeNumber = vals[i]->bv_val;
-					}
-						// FIXME
-						// These two attributes are not present in my current LDAP schema
-// 						userinfo.manager = vals[i]->bv_val;
-// 						userinfo.secretary = vals[i]->bv_val;
-					else if (ldap_field == "internationaliSDNNumber") {
-						userinfo.isdnNumber = vals[i]->bv_val;
-					}
-						// FIXME
-						// This attribute is not present in my current LDAP schema
-// 						userinfo.teletexID = vals[i]->bv_val;
-					else if (ldap_field == "telexNumber") {
-						userinfo.telexNumber = vals[i]->bv_val;
-					}
-						// FIXME
-						// This attribute is not present in my current LDAP schema
-// 						userinfo.preferredDelivery = vals[i]->bv_val;
-					else if (ldap_field == "destinationIndicator") {
-						userinfo.destinationIndicator = vals[i]->bv_val;
-					}
-					else if (ldap_field == "x121Address") {
-						userinfo.x121Address = vals[i]->bv_val;
-					}
-					else if (ldap_field == "displayName") {
-						userinfo.displayName = vals[i]->bv_val;
-					}
-					else if (ldap_field == "preferredLanguage") {
-						userinfo.preferredLanguage = vals[i]->bv_val;
-					}
-						// FIXME
-						// This attribute is not present in my current LDAP schema
-// 						userinfo.uniqueIdentifier = vals[i]->bv_val;
-					else if (ldap_field == "preferredLanguage") {
-						userinfo.businessCategory = vals[i]->bv_val;
-					}
-					else if (ldap_field == "carLicense") {
-						userinfo.carLicense = vals[i]->bv_val;
-					}
-						// FIXME
-						// This attribute is not present in my current LDAP schema
-// 						userinfo.notes = vals[i]->bv_val;
-					ldap_value_free_len(vals);
-				}
-				ldap_memfree(attr);
-			}
-			users.append(userinfo);
-
-			if (ber != NULL) {
-				ber_free(ber, 0);
-			}
-
-			printf("\n\r");
+			users.append(parseLDAPUserRecord(entry));
 		}
 		
 		// clean up
 		ldap_msgfree(msg);
 
-		// RAJA FIXME
 		return users;
 	}
 
 	return LDAPUserInfoList();
+}
+
+LDAPUserInfo LDAPManager::getUserByDistinguishedName(TQString dn) {
+	int retcode;
+	LDAPUserInfo userinfo;
+
+	if (bind() < 0) {
+		return LDAPUserInfo();
+	}
+	else {
+		LDAPMessage* msg;
+		struct timeval timeout;
+		timeout.tv_sec = 10;	// 10 second timeout
+		retcode = ldap_search_ext_s(m_ldap, dn.ascii(), LDAP_SCOPE_SUBTREE, NULL, ldap_user_and_operational_attributes, 0, NULL, NULL, &timeout, 0, &msg);
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP search failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return LDAPUserInfo();
+		}
+
+		// Iterate through the returned entries
+		LDAPMessage* entry;
+		for(entry = ldap_first_entry(m_ldap, msg); entry != NULL; entry = ldap_next_entry(m_ldap, entry)) {
+			userinfo = parseLDAPUserRecord(entry);
+		}
+		
+		// clean up
+		ldap_msgfree(msg);
+
+		return userinfo;
+	}
+
+	return LDAPUserInfo();
+}
+
+LDAPGroupInfo LDAPManager::getGroupByDistinguishedName(TQString dn) {
+	int retcode;
+	LDAPGroupInfo groupinfo;
+
+	if (bind() < 0) {
+		return LDAPGroupInfo();
+	}
+	else {
+		LDAPMessage* msg;
+		struct timeval timeout;
+		timeout.tv_sec = 10;	// 10 second timeout
+		retcode = ldap_search_ext_s(m_ldap, dn.ascii(), LDAP_SCOPE_SUBTREE, NULL, ldap_user_and_operational_attributes, 0, NULL, NULL, &timeout, 0, &msg);
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP search failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return LDAPGroupInfo();
+		}
+
+		// Iterate through the returned entries
+		LDAPMessage* entry;
+		for(entry = ldap_first_entry(m_ldap, msg); entry != NULL; entry = ldap_next_entry(m_ldap, entry)) {
+			groupinfo = parseLDAPGroupRecord(entry);
+		}
+		
+		// clean up
+		ldap_msgfree(msg);
+
+		return groupinfo;
+	}
+
+	return LDAPGroupInfo();
+}
+
+LDAPGroupInfo LDAPManager::parseLDAPGroupRecord(LDAPMessage* entry) {
+	char* dn = NULL;
+	char* attr;
+	struct berval **vals;
+	BerElement* ber;
+	int i;
+
+	LDAPGroupInfo groupinfo;
+
+	if((dn = ldap_get_dn(m_ldap, entry)) != NULL) {
+		printf("Returned dn: %s\n", dn);
+		groupinfo.distinguishedName = dn;
+		TQStringList dnParts = TQStringList::split(",", dn);
+		TQString id = dnParts[0];
+		if (id.startsWith("cn=")) {
+			id = id.remove(0, 3);
+			groupinfo.name = id;
+		}
+		ldap_memfree(dn);
+	}
+
+	for( attr = ldap_first_attribute(m_ldap, entry, &ber); attr != NULL; attr = ldap_next_attribute(m_ldap, entry, ber)) {
+		if ((vals = ldap_get_values_len(m_ldap, entry, attr)) != NULL)  {
+for(i = 0; vals[i] != NULL; i++) {
+	printf("[RAJA DEBUG 110.3] %s: %s\n\r", attr, vals[i]->bv_val);
+}
+			groupinfo.informationValid = true;
+			TQString ldap_field = attr;
+			i=0;
+			if (ldap_field == "member") {
+				TQStringList members;
+				for(i = 0; vals[i] != NULL; i++) {
+					TQString userdn = vals[i]->bv_val;
+					if (userdn.startsWith("cn=placeholder,dc=")) {
+						continue;
+					}
+					members.append(userdn);
+				}
+				groupinfo.userlist = members;
+			}
+			else if (ldap_field == "gidNumber") {
+				groupinfo.gid = atoi(vals[i]->bv_val);
+			}
+			ldap_value_free_len(vals);
+		}
+		ldap_memfree(attr);
+	}
+
+	if (ber != NULL) {
+		ber_free(ber, 0);
+	}
+
+	printf("\n\r");
+
+	return groupinfo;
 }
 
 LDAPGroupInfoList LDAPManager::groups() {
@@ -458,69 +586,15 @@ printf("[RAJA DEBUG 110.1] In LDAPManager::groups() bind was OK\n\r"); fflush(st
 printf("[RAJA DEBUG 110.2] The number of entries returned was %d\n\n", ldap_count_entries(m_ldap, msg));
 
 		// Iterate through the returned entries
-		char* dn = NULL;
-		char* attr;
-		struct berval **vals;
-		BerElement* ber;
 		LDAPMessage* entry;
-		int i;
 		for(entry = ldap_first_entry(m_ldap, msg); entry != NULL; entry = ldap_next_entry(m_ldap, entry)) {
-			LDAPGroupInfo groupinfo;
-
-			if((dn = ldap_get_dn(m_ldap, entry)) != NULL) {
-				printf("Returned dn: %s\n", dn);
-				groupinfo.distinguishedName = dn;
-				TQStringList dnParts = TQStringList::split(",", dn);
-				TQString id = dnParts[0];
-				if (id.startsWith("cn=")) {
-					id = id.remove(0, 3);
-					groupinfo.name = id;
-				}
-				else {
-					continue;
-				}
-				ldap_memfree(dn);
-			}
-
-			for( attr = ldap_first_attribute(m_ldap, entry, &ber); attr != NULL; attr = ldap_next_attribute(m_ldap, entry, ber)) {
-				if ((vals = ldap_get_values_len(m_ldap, entry, attr)) != NULL)  {
-for(i = 0; vals[i] != NULL; i++) {
-	printf("[RAJA DEBUG 110.3] %s: %s\n\r", attr, vals[i]->bv_val);
-}
-					groupinfo.informationValid = true;
-					TQString ldap_field = attr;
-					i=0;
-					if (ldap_field == "member") {
-						TQStringList members;
-						for(i = 0; vals[i] != NULL; i++) {
-							TQString userdn = vals[i]->bv_val;
-							if (userdn.startsWith("cn=placeholder,dc=")) {
-								continue;
-							}
-							members.append(userdn);
-						}
-						groupinfo.userlist = members;
-					}
-					else if (ldap_field == "gidNumber") {
-						groupinfo.gid = atoi(vals[i]->bv_val);
-					}
-					ldap_value_free_len(vals);
-				}
-				ldap_memfree(attr);
-			}
-			groups.append(groupinfo);
-
-			if (ber != NULL) {
-				ber_free(ber, 0);
-			}
-
-			printf("\n\r");
+			// RAJA
+			groups.append(parseLDAPGroupRecord(entry));
 		}
 		
 		// clean up
 		ldap_msgfree(msg);
 
-		// RAJA FIXME
 		return groups;
 	}
 

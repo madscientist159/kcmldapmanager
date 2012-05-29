@@ -173,6 +173,12 @@ class LDAPManager : public TQObject {
 		int unbind(bool force);
 		LDAPUserInfoList users();
 		LDAPGroupInfoList groups();
+		LDAPUserInfo getUserByDistinguishedName(TQString dn);
+		LDAPGroupInfo getGroupByDistinguishedName(TQString dn);
+
+	private:
+		LDAPUserInfo parseLDAPUserRecord(LDAPMessage* entry);
+		LDAPGroupInfo parseLDAPGroupRecord(LDAPMessage* entry);
 
 	private:
 		TQString m_realm;

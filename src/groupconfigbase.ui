@@ -60,12 +60,15 @@
 								<string>Group ID</string>
 							</property>
 						</widget>
-						<widget class="KLineEdit" row="1" column="2" colspan="1">
+						<widget class="KIntNumInput" row="1" column="2" colspan="1">
 							<property name="name">
 								<cstring>groupID</cstring>
 							</property>
-							<property name="enabled">
-								<cstring>false</cstring>
+							<property name="minValue">
+								<number>1</number>
+							</property>
+							<property name="maxValue">
+								<number>99999</number>
 							</property>
 						</widget>
 						<widget class="TQLayoutWidget" row="2" column="0" colspan="3">

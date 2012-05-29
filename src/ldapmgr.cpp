@@ -43,6 +43,7 @@
 #include "libtdeldap.h"
 #include "ldappasswddlg.h"
 #include "userconfigdlg.h"
+#include "groupconfigdlg.h"
 
 // FIXME
 // Connect this to CMake/Automake
@@ -84,6 +85,7 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
+	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
 	
 	load();
 	
@@ -156,6 +158,10 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 	TQString host = m_systemconfig->readEntry("admin_server");
 	m_ldapmanager = new LDAPManager(realm, host);
 
+	updateAllInformation();
+}
+
+void LDAPConfig::updateAllInformation() {
 	populateUsers();
 	populateGroups();
 	// RAJA FIXME
@@ -322,11 +328,26 @@ void LDAPConfig::modifySelectedUser() {
 	// Launch a dialog to edit the user
 	LDAPUserInfo user = selectedUser();
 
-	// RAJA FIXME
-	// Reload user data from LDAP before launching dialog!!!!  Otherwise people who leave the LDAP manager open for days at a time (admins) will end up inserting stale data into the LDAP database!!!
+	// Reload user data from LDAP before launching dialog
+	user = m_ldapmanager->getUserByDistinguishedName(user.distinguishedName);
 	UserConfigDialog userconfigdlg(user, this);
 	if (userconfigdlg.exec() == TQDialog::Accepted) {
+		// RAJA FIXME
 	}
+	updateAllInformation();
+}
+
+void LDAPConfig::modifySelectedGroup() {
+	// Launch a dialog to edit the user
+	LDAPGroupInfo group = selectedGroup();
+
+	// Reload group data from LDAP before launching dialog
+	group = m_ldapmanager->getGroupByDistinguishedName(group.distinguishedName);
+	GroupConfigDialog groupconfigdlg(group, this);
+	if (groupconfigdlg.exec() == TQDialog::Accepted) {
+		// RAJA FIXME
+	}
+	updateAllInformation();
 }
 
 int LDAPConfig::buttons() {

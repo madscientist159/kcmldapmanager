@@ -60,6 +60,8 @@ class LDAPConfig: public KCModule
 		void userHighlighted();
 		void groupHighlighted();
 		void modifySelectedUser();
+		void modifySelectedGroup();
+		void updateAllInformation();
 
 	public:
 		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
