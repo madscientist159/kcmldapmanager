@@ -42,9 +42,9 @@ public slots:
 
 public:
 	LDAPUserConfigBase *m_base;
+	LDAPUserInfo m_user;
 
 private:
-	LDAPUserInfo m_user;
 	LDAPConfig* m_ldapconfig;
 	TQString m_prevPrimaryGroup;
 };

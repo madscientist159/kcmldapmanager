@@ -44,9 +44,9 @@ private slots:
 
 public:
 	LDAPGroupConfigBase *m_base;
+	LDAPGroupInfo m_group;
 
 private:
-	LDAPGroupInfo m_group;
 	LDAPConfig* m_ldapconfig;
 };
 

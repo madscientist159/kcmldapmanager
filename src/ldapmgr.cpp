@@ -201,6 +201,30 @@ void LDAPConfig::updateGroupsList() {
 	processLockouts();
 }
 
+LDAPUserInfo LDAPConfig::findUserInfoByName(TQString name) {
+	// Figure out which user is selected
+	LDAPUserInfoList::Iterator it;
+	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
+		LDAPUserInfo user = *it;
+		if (user.name == name) {
+			return user;
+		}
+	}
+	return LDAPUserInfo();
+}
+
+LDAPGroupInfo LDAPConfig::findGroupInfoByName(TQString name) {
+	// Figure out which group is selected
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		if (group.name == name) {
+			return group;
+		}
+	}
+	return LDAPGroupInfo();
+}
+
 LDAPUserInfo LDAPConfig::findUserInfoByNameAndUID(TQString name, TQString uid) {
 	// Figure out which user is selected
 	LDAPUserInfoList::Iterator it;
@@ -345,6 +369,8 @@ void LDAPConfig::modifySelectedGroup() {
 	group = m_ldapmanager->getGroupByDistinguishedName(group.distinguishedName);
 	GroupConfigDialog groupconfigdlg(group, this);
 	if (groupconfigdlg.exec() == TQDialog::Accepted) {
+		group = groupconfigdlg.m_group;
+		m_ldapmanager->updateGroupInfo(group);
 		// RAJA FIXME
 	}
 	updateAllInformation();

@@ -505,6 +505,95 @@ LDAPGroupInfo LDAPManager::getGroupByDistinguishedName(TQString dn) {
 	return LDAPGroupInfo();
 }
 
+void add_single_attribute_operation(LDAPMod **mods, int *i, TQString attr, TQString value) {
+	mods[*i]->mod_op = LDAP_MOD_DELETE;
+	mods[*i]->mod_type = strdup(attr.ascii());
+	mods[*i]->mod_values = NULL;
+	(*i)++;
+
+	char **values = (char**)malloc(2*sizeof(char*));
+	values[0] = strdup(value.ascii());
+	values[1] = NULL;
+	mods[*i]->mod_op = LDAP_MOD_ADD;
+	mods[*i]->mod_type = strdup(attr.ascii());
+	mods[*i]->mod_values = values;
+	(*i)++;
+}
+
+void add_multiple_attributes_operation(LDAPMod **mods, int *i, TQString attr, TQStringList strings) {
+	mods[*i]->mod_op = LDAP_MOD_DELETE;
+	mods[*i]->mod_type = strdup(attr.ascii());
+	mods[*i]->mod_values = NULL;
+	(*i)++;
+
+	int j=0;
+	char **values = (char**)malloc((strings.count()+1)*sizeof(char*));
+	for ( TQStringList::Iterator it = strings.begin(); it != strings.end(); ++it ) {
+		values[j] = strdup((*it).ascii());
+		j++;
+	}
+	values[j] = NULL;
+	mods[*i]->mod_op = LDAP_MOD_ADD;
+	mods[*i]->mod_type = strdup(attr.ascii());
+	mods[*i]->mod_values = values;
+	(*i)++;
+}
+
+int LDAPManager::updateGroupInfo(LDAPGroupInfo group) {
+	int retcode;
+	int i;
+	LDAPGroupInfo groupinfo;
+
+	if (bind() < 0) {
+		return -1;
+	}
+	else {
+		// Assemble the LDAPMod structure
+		// We will replace attributes by first deleting them, then adding them back with their new values
+		int number_of_parameters = 2;				// 2 primary attributes
+		number_of_parameters = (number_of_parameters * 2);	// MODIFY/DELETE
+		LDAPMod *mods[number_of_parameters+1];
+		for (i=0;i<number_of_parameters;i++) {
+			mods[i] = new LDAPMod;
+			mods[i]->mod_type = NULL;
+			mods[i]->mod_values = NULL;
+		}
+		mods[number_of_parameters] = NULL;
+
+		// Load LDAP modification requests from provided data structure
+		i=0;
+		add_single_attribute_operation(mods, &i, "gidNumber", TQString("%1").arg(group.gid));
+		add_multiple_attributes_operation(mods, &i, "member", group.userlist);
+
+		// Perform LDAP update
+		retcode = ldap_modify_ext_s(m_ldap, group.distinguishedName.ascii(), mods, NULL, NULL);
+
+		// Clean up
+		for (i=0;i<number_of_parameters;i++) {
+			if (mods[i]->mod_type != NULL) {
+				free(mods[i]->mod_type);
+			}
+			if (mods[i]->mod_values != NULL) {
+				int j = 0;
+				while (mods[i]->mod_values[j] != NULL) {
+					free(mods[i]->mod_values[j]);
+					j++;
+				}
+				free(mods[i]->mod_values);
+			}
+			delete mods[i];
+		}
+
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP modification failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return -2;
+		}
+		else {
+			return 0;
+		}
+	}
+}
+
 LDAPGroupInfo LDAPManager::parseLDAPGroupRecord(LDAPMessage* entry) {
 	char* dn = NULL;
 	char* attr;

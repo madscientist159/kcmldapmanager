@@ -175,6 +175,7 @@ class LDAPManager : public TQObject {
 		LDAPGroupInfoList groups();
 		LDAPUserInfo getUserByDistinguishedName(TQString dn);
 		LDAPGroupInfo getGroupByDistinguishedName(TQString dn);
+		int updateGroupInfo(LDAPGroupInfo group);
 
 	private:
 		LDAPUserInfo parseLDAPUserRecord(LDAPMessage* entry);

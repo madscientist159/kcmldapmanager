@@ -72,6 +72,19 @@ GroupConfigDialog::GroupConfigDialog(LDAPGroupInfo group, LDAPConfig* parent, co
 }
 
 void GroupConfigDialog::slotOk() {
+	int i;
+
+	// Update data
+	m_group.gid = m_base->groupID->value();
+	TQStringList userlist;
+	for (i=0;i<m_base->selectedAccounts->count();i++) {
+		TQListBoxText* itm = dynamic_cast<TQListBoxText*>(m_base->selectedAccounts->item(i));
+		if (itm) {
+			userlist.append(m_ldapconfig->findUserInfoByName(itm->text()).distinguishedName);
+		}
+	}
+	m_group.userlist = userlist;
+
 	accept();
 }
 

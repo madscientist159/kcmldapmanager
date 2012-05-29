@@ -64,6 +64,8 @@ class LDAPConfig: public KCModule
 		void updateAllInformation();
 
 	public:
+		LDAPUserInfo findUserInfoByName(TQString name);
+		LDAPGroupInfo findGroupInfoByName(TQString name);
 		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
 		LDAPGroupInfo findGroupInfoByNameAndGID(TQString name, TQString gid);
 		LDAPGroupInfo findGroupInfoByGID(TQString gid);

@@ -110,6 +110,9 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 }
 
 void UserConfigDialog::slotOk() {
+	// Update data
+	// RAJA FIXME
+
 	accept();
 }
 
