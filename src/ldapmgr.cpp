@@ -81,11 +81,15 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	base->user_status->setEnabled(false);
 	base->user_secondaryGroups->setEnabled(false);
 
+	base->machine_name->setEnabled(false);
+	base->machine_author->setEnabled(false);
+
 	connect(base->user_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->group_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->machine_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
+	connect(base->machine_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(machineHighlighted()));
 
 	connect(base->user_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewUser()));
 	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
@@ -93,6 +97,7 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
 	connect(base->user_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUser()));
 	connect(base->group_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedGroup()));
+	connect(base->machine_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedMachine()));
 	
 	load();
 	
@@ -183,8 +188,8 @@ void LDAPConfig::processLockouts() {
 	// FIXME
 	// Disable machine add/modify as they are not implemented
 	// In fact, I don't know if I CAN implement them!
-	base->machine_buttonAdd->setEnabled(true);
-	base->machine_buttonModify->setEnabled(true);
+	base->machine_buttonAdd->setEnabled(false);
+	base->machine_buttonModify->setEnabled(false);
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
@@ -210,13 +215,11 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 void LDAPConfig::updateAllInformation() {
 	populateUsers();
 	populateGroups();
-	// RAJA FIXME
-	// Machines??
+	populateMachines();
 
 	updateUsersList();
 	updateGroupsList();
-	// RAJA FIXME
-	// Machines??
+	updateMachinesList();
 }
 
 void LDAPConfig::populateUsers() {
@@ -225,6 +228,10 @@ void LDAPConfig::populateUsers() {
 
 void LDAPConfig::populateGroups() {
 	m_groupInfoList = m_ldapmanager->groups();
+}
+
+void LDAPConfig::populateMachines() {
+	m_machineInfoList = m_ldapmanager->machines();
 }
 
 void LDAPConfig::updateUsersList() {
@@ -270,6 +277,27 @@ void LDAPConfig::updateGroupsList() {
 	processLockouts();
 }
 
+void LDAPConfig::updateMachinesList() {
+	TQListViewItem* itm = base->machine_list->selectedItem();
+	TQString prevSelectedItemText;
+	if (itm) {
+		prevSelectedItemText = itm->text(0);
+	}
+
+	base->machine_list->clear();
+	LDAPMachineInfoList::Iterator it;
+	for (it = m_machineInfoList.begin(); it != m_machineInfoList.end(); ++it) {
+		LDAPMachineInfo machine = *it;
+		itm = new TQListViewItem(base->machine_list, machine.name);
+		if (prevSelectedItemText != "") {
+			if (machine.name == prevSelectedItemText) {
+				base->machine_list->setSelected(itm, true);
+			}
+		}
+	}
+	processLockouts();
+}
+
 LDAPUserInfo LDAPConfig::findUserInfoByName(TQString name) {
 	// Figure out which user is selected
 	LDAPUserInfoList::Iterator it;
@@ -292,6 +320,18 @@ LDAPGroupInfo LDAPConfig::findGroupInfoByName(TQString name) {
 		}
 	}
 	return LDAPGroupInfo();
+}
+
+LDAPMachineInfo LDAPConfig::findMachineInfoByName(TQString name) {
+	// Figure out which machine is selected
+	LDAPMachineInfoList::Iterator it;
+	for (it = m_machineInfoList.begin(); it != m_machineInfoList.end(); ++it) {
+		LDAPMachineInfo machine = *it;
+		if (machine.name == name) {
+			return machine;
+		}
+	}
+	return LDAPMachineInfo();
 }
 
 LDAPUserInfo LDAPConfig::findUserInfoByNameAndUID(TQString name, TQString uid) {
@@ -344,6 +384,14 @@ LDAPGroupInfo LDAPConfig::selectedGroup() {
 		return LDAPGroupInfo();
 	}
 	return findGroupInfoByNameAndGID(lvi->text(0), lvi->text(1));
+}
+
+LDAPMachineInfo LDAPConfig::selectedMachine() {
+	TQListViewItem* lvi = base->machine_list->selectedItem();
+	if (!lvi) {
+		return LDAPMachineInfo();
+	}
+	return findMachineInfoByName(lvi->text(0));
 }
 
 LDAPUserInfo LDAPConfig::findUserByDistinguishedName(TQString dn) {
@@ -411,6 +459,16 @@ void LDAPConfig::groupHighlighted() {
 		LDAPUserInfo user = findUserByDistinguishedName(*it);
 		(void)new TQListViewItem(base->group_memberList, user.name, user.commonName, TQString("%1").arg(user.uid));
 	}
+
+	processLockouts();
+}
+
+void LDAPConfig::machineHighlighted() {
+	// Show information in the quick view area
+	LDAPMachineInfo machine = selectedMachine();
+
+	base->machine_name->setText(machine.name);
+	base->machine_author->setText(findUserByDistinguishedName(machine.creatorsName).name);
 
 	processLockouts();
 }
@@ -598,6 +656,16 @@ void LDAPConfig::removeSelectedGroup() {
 
 	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the group %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(group.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
 		m_ldapmanager->deleteGroupInfo(group);
+	}
+
+	updateAllInformation();
+}
+
+void LDAPConfig::removeSelectedMachine() {
+	LDAPMachineInfo machine = selectedMachine();
+
+	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the machine %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(machine.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
+		m_ldapmanager->deleteMachineInfo(machine);
 	}
 
 	updateAllInformation();

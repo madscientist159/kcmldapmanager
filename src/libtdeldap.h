@@ -52,6 +52,7 @@ enum LDAPKRB5Flags {
 
 	KRB5_ACTIVE_DEFAULT		= KRB5_FORWARDABLE | KRB5_RENEWABLE | KRB5_CLIENT | KRB5_CHANGE_PW,
 	KRB5_DISABLED_ACCOUNT		= KRB5_FORWARDABLE | KRB5_SERVER | KRB5_INVALID | KRB5_REQUIRE_PREAUTH | KRB5_REQUIRE_HWAUTH | KRB5_OK_AS_DELEGATE | KRB5_USER_TO_USER,
+	KRB5_MACHINE_ACCOUNT_DEFAULT	= KRB5_FORWARDABLE | KRB5_PROXIABLE | KRB5_RENEWABLE | KRB5_POSTDATE | KRB5_SERVER | KRB5_CLIENT,
 	KRB5_FLAG_MAX			= 0x80000000
 };
 
@@ -75,6 +76,7 @@ class LDAPUserInfo
 	public:
 		bool informationValid;
 		TQString distinguishedName;
+		TQString creatorsName;
 
 		TQString name;
 		uid_t uid;
@@ -153,14 +155,31 @@ class LDAPGroupInfo
 	public:
 		bool informationValid;
 		TQString distinguishedName;
+		TQString creatorsName;
 
 		TQString name;
 		gid_t gid;
 		TQStringList userlist;
 };
 
+class LDAPMachineInfo
+{
+	public:
+		LDAPMachineInfo();
+		~LDAPMachineInfo();
+
+	public:
+		bool informationValid;
+		TQString distinguishedName;
+		TQString creatorsName;
+
+		TQString name;
+		LDAPKRB5Flags status;
+};
+
 typedef TQValueList<LDAPUserInfo> LDAPUserInfoList;
 typedef TQValueList<LDAPGroupInfo> LDAPGroupInfoList;
+typedef TQValueList<LDAPMachineInfo> LDAPMachineInfoList;
 
 class LDAPManager : public TQObject {
 	Q_OBJECT
@@ -175,6 +194,7 @@ class LDAPManager : public TQObject {
 		int unbind(bool force);
 		LDAPUserInfoList users();
 		LDAPGroupInfoList groups();
+		LDAPMachineInfoList machines();
 		LDAPUserInfo getUserByDistinguishedName(TQString dn);
 		LDAPGroupInfo getGroupByDistinguishedName(TQString dn);
 		int updateUserInfo(LDAPUserInfo user);
@@ -183,12 +203,14 @@ class LDAPManager : public TQObject {
 		int addGroupInfo(LDAPGroupInfo group);
 		int deleteUserInfo(LDAPUserInfo user);
 		int deleteGroupInfo(LDAPGroupInfo group);
+		int deleteMachineInfo(LDAPMachineInfo machine);
 
 		LDAPCredentials currentLDAPCredentials();
 
 	private:
 		LDAPUserInfo parseLDAPUserRecord(LDAPMessage* entry);
 		LDAPGroupInfo parseLDAPGroupRecord(LDAPMessage* entry);
+		LDAPMachineInfo parseLDAPMachineRecord(LDAPMessage* entry);
 
 	private:
 		TQString m_realm;

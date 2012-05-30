@@ -55,21 +55,26 @@ class LDAPConfig: public KCModule
 		void connectToRealm(const TQString&);
 		void populateUsers();
 		void populateGroups();
+		void populateMachines();
 		void updateUsersList();
 		void updateGroupsList();
+		void updateMachinesList();
 		void userHighlighted();
 		void groupHighlighted();
+		void machineHighlighted();
 		void addNewUser();
 		void addNewGroup();
 		void modifySelectedUser();
 		void modifySelectedGroup();
 		void removeSelectedUser();
 		void removeSelectedGroup();
+		void removeSelectedMachine();
 		void updateAllInformation();
 
 	public:
 		LDAPUserInfo findUserInfoByName(TQString name);
 		LDAPGroupInfo findGroupInfoByName(TQString name);
+		LDAPMachineInfo findMachineInfoByName(TQString name);
 		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
 		LDAPGroupInfo findGroupInfoByNameAndGID(TQString name, TQString gid);
 		LDAPGroupInfo findGroupInfoByGID(TQString gid);
@@ -81,6 +86,7 @@ class LDAPConfig: public KCModule
 	private:
 		LDAPUserInfo selectedUser();
 		LDAPGroupInfo selectedGroup();
+		LDAPMachineInfo selectedMachine();
 		int setPasswordForUser(LDAPUserInfo user, TQString *errstr);
 
 	private:
@@ -92,6 +98,7 @@ class LDAPConfig: public KCModule
 
 		LDAPUserInfoList m_userInfoList;
 		LDAPGroupInfoList m_groupInfoList;
+		LDAPMachineInfoList m_machineInfoList;
 };
 
 #endif

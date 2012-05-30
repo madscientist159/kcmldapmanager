@@ -140,9 +140,7 @@ printf("[RAJA DEBUG 600.0] In LDAPManager::bind()\n\r"); fflush(stdout);
 				LDAPMessage* msg;
 				TQString ldap_base_dn = m_basedc;
 				TQString ldap_filter = TQString("(&(objectclass=posixAccount)(uid=%1))").arg(passdlg.m_base->ldapAdminUsername->text());
-				struct timeval timeout;
-				timeout.tv_sec = 10;	// 10 second timeout
-				retcode = ldap_search_ext_s(ldapconn, ldap_base_dn.ascii(), LDAP_SCOPE_SUBTREE, ldap_filter.ascii(), NULL, 0, NULL, NULL, &timeout, 0, &msg);
+				retcode = ldap_search_ext_s(ldapconn, ldap_base_dn.ascii(), LDAP_SCOPE_SUBTREE, ldap_filter.ascii(), NULL, 0, NULL, NULL, NULL, 0, &msg);
 				if (retcode != LDAP_SUCCESS) {
 					KMessageBox::error(0, i18n("<qt>LDAP search failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
 				}
@@ -225,7 +223,10 @@ printf("[RAJA DEBUG 100.3] %s: %s\n\r", attr, vals[i]->bv_val);
 			userinfo.informationValid = true;
 			TQString ldap_field = attr;
 			i=0;
-			if (ldap_field == "uidNumber") {
+			if (ldap_field == "creatorsName") {
+				userinfo.creatorsName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "uidNumber") {
 				userinfo.uid = atoi(vals[i]->bv_val);
 			}
 			else if (ldap_field == "loginShell") {
@@ -920,6 +921,26 @@ int LDAPManager::deleteGroupInfo(LDAPGroupInfo group) {
 	}
 }
 
+int LDAPManager::deleteMachineInfo(LDAPMachineInfo machine) {
+	int retcode;
+	LDAPMachineInfo machineinfo;
+
+	if (bind() < 0) {
+		return -1;
+	}
+	else {
+		// Delete the base DN entry
+		retcode = ldap_delete_ext_s(m_ldap, machine.distinguishedName.ascii(), NULL, NULL);
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP deletion failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return -2;
+		}
+		else {
+			return 0;
+		}
+	}
+}
+
 LDAPGroupInfo LDAPManager::parseLDAPGroupRecord(LDAPMessage* entry) {
 	char* dn = NULL;
 	char* attr;
@@ -949,7 +970,10 @@ for(i = 0; vals[i] != NULL; i++) {
 			groupinfo.informationValid = true;
 			TQString ldap_field = attr;
 			i=0;
-			if (ldap_field == "member") {
+			if (ldap_field == "creatorsName") {
+				groupinfo.creatorsName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "member") {
 				TQStringList members;
 				for(i = 0; vals[i] != NULL; i++) {
 					TQString userdn = vals[i]->bv_val;
@@ -975,6 +999,56 @@ for(i = 0; vals[i] != NULL; i++) {
 	printf("\n\r");
 
 	return groupinfo;
+}
+
+LDAPMachineInfo LDAPManager::parseLDAPMachineRecord(LDAPMessage* entry) {
+	char* dn = NULL;
+	char* attr;
+	struct berval **vals;
+	BerElement* ber;
+	int i;
+
+	LDAPMachineInfo machineinfo;
+
+	if((dn = ldap_get_dn(m_ldap, entry)) != NULL) {
+		printf("Returned dn: %s\n", dn);
+		machineinfo.distinguishedName = dn;
+		TQStringList dnParts = TQStringList::split(",", dn);
+		TQString id = dnParts[0];
+		if (id.startsWith("krb5PrincipalName=host/")) {
+			id = id.remove(0, 23);
+			id.replace("@"+m_realm, "");
+			machineinfo.name = id;
+		}
+		ldap_memfree(dn);
+	}
+
+	for( attr = ldap_first_attribute(m_ldap, entry, &ber); attr != NULL; attr = ldap_next_attribute(m_ldap, entry, ber)) {
+		if ((vals = ldap_get_values_len(m_ldap, entry, attr)) != NULL)  {
+for(i = 0; vals[i] != NULL; i++) {
+	printf("[RAJA DEBUG 120.3] %s: %s\n\r", attr, vals[i]->bv_val);
+}
+			machineinfo.informationValid = true;
+			TQString ldap_field = attr;
+			i=0;
+			if (ldap_field == "creatorsName") {
+				machineinfo.creatorsName = vals[i]->bv_val;
+			}
+			else if (ldap_field == "krb5KDCFlags") {
+				machineinfo.status = (LDAPKRB5Flags)(atoi(vals[i]->bv_val));
+			}
+			ldap_value_free_len(vals);
+		}
+		ldap_memfree(attr);
+	}
+
+	if (ber != NULL) {
+		ber_free(ber, 0);
+	}
+
+	printf("\n\r");
+
+	return machineinfo;
 }
 
 LDAPGroupInfoList LDAPManager::groups() {
@@ -1016,6 +1090,43 @@ printf("[RAJA DEBUG 110.2] The number of entries returned was %d\n\n", ldap_coun
 	return LDAPGroupInfoList();
 }
 
+LDAPMachineInfoList LDAPManager::machines() {
+	int retcode;
+	LDAPMachineInfoList machines;
+printf("[RAJA DEBUG 120.0] In LDAPManager::machines()\n\r"); fflush(stdout);
+
+	if (bind() < 0) {
+		return LDAPMachineInfoList();
+	}
+	else {
+printf("[RAJA DEBUG 120.1] In LDAPManager::machines() bind was OK\n\r"); fflush(stdout);
+		LDAPMessage* msg;
+		TQString ldap_base_dn = m_basedc;
+		TQString ldap_filter = "(&(objectClass=krb5Principal)(uid=host/*))";
+		retcode = ldap_search_ext_s(m_ldap, ldap_base_dn.ascii(), LDAP_SCOPE_SUBTREE, ldap_filter.ascii(), ldap_user_and_operational_attributes, 0, NULL, NULL, NULL, 0, &msg);
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP search failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return LDAPMachineInfoList();
+		}
+		
+printf("[RAJA DEBUG 120.2] The number of entries returned was %d\n\n", ldap_count_entries(m_ldap, msg));
+
+		// Iterate through the returned entries
+		LDAPMessage* entry;
+		for(entry = ldap_first_entry(m_ldap, msg); entry != NULL; entry = ldap_next_entry(m_ldap, entry)) {
+			// RAJA
+			machines.append(parseLDAPMachineRecord(entry));
+		}
+
+		// clean up
+		ldap_msgfree(msg);
+
+		return machines;
+	}
+
+	return LDAPMachineInfoList();
+}
+
 // ===============================================================================================================
 //
 // DATA CLASS CONSTRUCTORS AND DESTRUCTORS
@@ -1055,6 +1166,17 @@ LDAPGroupInfo::LDAPGroupInfo() {
 }
 
 LDAPGroupInfo::~LDAPGroupInfo() {
+	//
+}
+
+LDAPMachineInfo::LDAPMachineInfo() {
+	// TQStrings are always initialized to TQString::null, so they don't need initialization here...
+	informationValid = false;
+
+	status = (LDAPKRB5Flags)0;
+}
+
+LDAPMachineInfo::~LDAPMachineInfo() {
 	//
 }
 
