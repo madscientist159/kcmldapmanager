@@ -55,6 +55,15 @@ TQString LDAPManager::realm() {
 	return m_realm;
 }
 
+LDAPCredentials LDAPManager::currentLDAPCredentials() {
+	if (m_creds) {
+		return *m_creds;
+	}
+	else {
+		return LDAPCredentials();
+	}
+}
+
 int LDAPManager::bind() {
 printf("[RAJA DEBUG 600.0] In LDAPManager::bind()\n\r"); fflush(stdout);
 	if (m_ldap) {
@@ -93,6 +102,10 @@ printf("[RAJA DEBUG 600.0] In LDAPManager::bind()\n\r"); fflush(stdout);
 		struct berval cred;
 		TQString ldap_dn = passdlg.m_base->ldapAdminUsername->text();
 		TQCString pass = passdlg.m_base->ldapAdminPassword->password();
+		if (!m_creds) m_creds = new LDAPCredentials();
+		m_creds->username = passdlg.m_base->ldapAdminUsername->text();
+		m_creds->password = passdlg.m_base->ldapAdminPassword->password();
+		m_creds->realm = passdlg.m_base->ldapAdminRealm->currentText();
 		cred.bv_val = pass.data();
 		cred.bv_len = pass.length();
 

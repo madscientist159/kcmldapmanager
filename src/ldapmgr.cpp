@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <tqlayout.h>
+#include <tqapplication.h>
 
 #include <klocale.h>
 #include <kglobal.h>
@@ -37,6 +38,8 @@
 #include <kcombobox.h>
 #include <kmessagebox.h>
 #include <klineedit.h>
+
+#include <tdesu/process.h>
 
 #include "ldapmgr.h"
 
@@ -148,7 +151,6 @@ void LDAPConfig::save() {
 }
 
 void LDAPConfig::processLockouts() {
-	// RAJA FIXME
 	TQListViewItem* lvi = base->user_list->selectedItem();
 	if (lvi) {
 		base->user_buttonModify->setEnabled(true);
@@ -170,6 +172,19 @@ void LDAPConfig::processLockouts() {
 		base->group_buttonDelete->setEnabled(false);
 	}
 	base->group_buttonAdd->setEnabled(true);
+
+	lvi = base->machine_list->selectedItem();
+	if (lvi) {
+		base->machine_buttonDelete->setEnabled(true);
+	}
+	else {
+		base->machine_buttonDelete->setEnabled(false);
+	}
+	// FIXME
+	// Disable machine add/modify as they are not implemented
+	// In fact, I don't know if I CAN implement them!
+	base->machine_buttonAdd->setEnabled(true);
+	base->machine_buttonModify->setEnabled(true);
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
@@ -431,7 +446,36 @@ void LDAPConfig::addNewUser() {
 			else {
 				user.distinguishedName = "uid=" + user.name + "," + m_ldapmanager->basedn();
 			}
-			m_ldapmanager->addUserInfo(user);
+			if (m_ldapmanager->addUserInfo(user) == 0) {
+				if (user.new_password != "") {
+					// If a new password was set, use Kerberos to set it on the server
+					TQString errorString;
+					if (setPasswordForUser(user, &errorString) != 0) {
+						KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
+					}
+				}
+	
+				// Modify group(s) as needed
+				populateGroups();
+				LDAPGroupInfoList::Iterator it;
+				for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+					LDAPGroupInfo group = *it;
+					if (userconfigdlg.selectedGroups.contains(group.name)) {
+						// Make sure that we are in this group!
+						if (!group.userlist.contains(user.distinguishedName)) {
+							group.userlist.append(user.distinguishedName);
+							m_ldapmanager->updateGroupInfo(group);
+						}
+					}
+					else {
+						// Make sure that we are NOT in this group!
+						if (group.userlist.contains(user.distinguishedName)) {
+							group.userlist.remove(user.distinguishedName);
+							m_ldapmanager->updateGroupInfo(group);
+						}
+					}
+				}
+			}
 		}
 		else {
 			// PEBKAC
@@ -492,6 +536,14 @@ void LDAPConfig::modifySelectedUser() {
 	if (userconfigdlg.exec() == TQDialog::Accepted) {
 		user = userconfigdlg.m_user;
 		if (m_ldapmanager->updateUserInfo(user) == 0) {
+			if (user.new_password != "") {
+				// If a new password was set, use Kerberos to set it on the server
+				TQString errorString;
+				if (setPasswordForUser(user, &errorString) != 0) {
+					KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
+				}
+			}
+
 			// Modify group(s) as needed
 			populateGroups();
 			LDAPGroupInfoList::Iterator it;
@@ -549,6 +601,90 @@ void LDAPConfig::removeSelectedGroup() {
 	}
 
 	updateAllInformation();
+}
+
+TQString readFullLineFromPtyProcess(PtyProcess* proc) {
+	TQString result = "";
+	while ((!result.contains("\n")) && (!result.contains(":")) && (!result.contains(">"))) {
+		result = result + TQString(proc->readLine(false));
+		tqApp->processEvents();
+	}
+	return result;
+}
+
+int LDAPConfig::setPasswordForUser(LDAPUserInfo user, TQString *errstr) {
+	if (user.new_password == "") {
+		return 0;
+	}
+
+	LDAPCredentials admincreds = m_ldapmanager->currentLDAPCredentials();
+
+	TQCString command = "kadmin";
+	QCStringList args;
+	args << TQCString("-p") << TQCString(admincreds.username.lower()+"@"+(admincreds.realm.upper())) << TQCString("-r") << TQCString(admincreds.realm.upper());
+
+	TQString prompt;
+	PtyProcess kadminProc;
+	kadminProc.exec(command, args);
+	prompt = kadminProc.readLine(true);
+	prompt = prompt.stripWhiteSpace();
+	if (prompt == "kadmin>") {
+		kadminProc.writeLine(TQCString("passwd "+user.name), true);
+		prompt = kadminProc.readLine(true);	// Discard our own input
+		prompt = readFullLineFromPtyProcess(&kadminProc);
+		prompt = prompt.stripWhiteSpace();
+		if ((prompt.endsWith(" Password:")) && (!prompt.startsWith(TQString(user.name + "@")))) {
+			kadminProc.writeLine(admincreds.password, true);
+			prompt = kadminProc.readLine(true);	// Discard our own input
+			prompt = kadminProc.readLine(true);
+			prompt = prompt.stripWhiteSpace();
+		}
+		if (prompt.contains("authentication failed")) {
+			if (errstr) *errstr = prompt;
+			kadminProc.writeLine("quit", true);
+			return 1;
+		}
+		else if ((prompt.endsWith(" Password:")) && (prompt.startsWith(TQString(user.name + "@")))) {
+			kadminProc.writeLine(user.new_password, true);
+			prompt = kadminProc.readLine(true);	// Discard our own input
+			prompt = kadminProc.readLine(true);
+			prompt = prompt.stripWhiteSpace();
+			if ((prompt.endsWith(" Password:")) && (prompt.startsWith("Verify"))) {
+				kadminProc.writeLine(user.new_password, true);
+				prompt = kadminProc.readLine(true);	// Discard our own input
+				prompt = kadminProc.readLine(true);
+				prompt = prompt.stripWhiteSpace();
+			}
+			if ((prompt.endsWith(" Password:")) && (!prompt.startsWith(TQString(user.name + "@")))) {
+				kadminProc.writeLine(admincreds.password, true);
+				prompt = kadminProc.readLine(true);	// Discard our own input
+				prompt = kadminProc.readLine(true);
+				prompt = prompt.stripWhiteSpace();
+			}
+			if (prompt != "kadmin>") {
+				if (errstr) *errstr = prompt;
+				kadminProc.writeLine("quit", true);
+				return 1;
+			}
+
+			// Success!
+			kadminProc.writeLine("quit", true);
+			return 0;
+		}
+		else if (prompt == "kadmin>") {
+			// Success!
+			kadminProc.writeLine("quit", true);
+			return 0;
+		}
+
+		// Failure
+		if (errstr) *errstr = prompt;
+		kadminProc.writeLine("quit", true);
+		return 1;
+	}
+
+	if (errstr) *errstr = "Internal error.  Verify that kadmin exists and can be executed.";
+	return 1;	// Failure
 }
 
 int LDAPConfig::buttons() {

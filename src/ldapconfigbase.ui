@@ -573,7 +573,7 @@
 								</property>
 								<widget class="TQLayoutWidget" row="0" column="0">
 									<property name="name">
-										<cstring>userControls</cstring>
+										<cstring>machineControls</cstring>
 									</property>
 									<grid>
 										<property name="name">
@@ -581,7 +581,7 @@
 										</property>
 										<widget class="TQPushButton" row="0" column="1" colspan="0">
 											<property name="name">
-												<cstring>user_buttonModify</cstring>
+												<cstring>machine_buttonModify</cstring>
 											</property>
 											<property name="text">
 												<string>Modify</string>
@@ -589,7 +589,7 @@
 										</widget>
 										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
-												<cstring>user_buttonAdd</cstring>
+												<cstring>machine_buttonAdd</cstring>
 											</property>
 											<property name="text">
 												<string>New</string>
@@ -597,7 +597,7 @@
 										</widget>
 										<widget class="TQPushButton" row="0" column="2" colspan="0">
 											<property name="name">
-												<cstring>user_buttonDelete</cstring>
+												<cstring>machine_buttonDelete</cstring>
 											</property>
 											<property name="text">
 												<string>Delete</string>

@@ -184,6 +184,8 @@ class LDAPManager : public TQObject {
 		int deleteUserInfo(LDAPUserInfo user);
 		int deleteGroupInfo(LDAPGroupInfo group);
 
+		LDAPCredentials currentLDAPCredentials();
+
 	private:
 		LDAPUserInfo parseLDAPUserRecord(LDAPMessage* entry);
 		LDAPGroupInfo parseLDAPGroupRecord(LDAPMessage* entry);

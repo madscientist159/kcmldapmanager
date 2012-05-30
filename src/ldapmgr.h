@@ -81,6 +81,7 @@ class LDAPConfig: public KCModule
 	private:
 		LDAPUserInfo selectedUser();
 		LDAPGroupInfo selectedGroup();
+		int setPasswordForUser(LDAPUserInfo user, TQString *errstr);
 
 	private:
 		KAboutData *myAboutData;
