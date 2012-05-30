@@ -43,6 +43,7 @@ public slots:
 public:
 	LDAPUserConfigBase *m_base;
 	LDAPUserInfo m_user;
+	TQStringList selectedGroups;
 
 private:
 	LDAPConfig* m_ldapconfig;

@@ -84,9 +84,11 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 
+	connect(base->user_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewUser()));
 	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
 	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
+	connect(base->user_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUser()));
 	connect(base->group_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedGroup()));
 	
 	load();
@@ -138,15 +140,36 @@ void LDAPConfig::load() {
 }
 
 void LDAPConfig::defaults() {
-	
+	//
 }
 
 void LDAPConfig::save() {
-	
+	//
 }
 
 void LDAPConfig::processLockouts() {
-	//
+	// RAJA FIXME
+	TQListViewItem* lvi = base->user_list->selectedItem();
+	if (lvi) {
+		base->user_buttonModify->setEnabled(true);
+		base->user_buttonDelete->setEnabled(true);
+	}
+	else {
+		base->user_buttonModify->setEnabled(false);
+		base->user_buttonDelete->setEnabled(false);
+	}
+	base->user_buttonAdd->setEnabled(true);
+
+	lvi = base->group_list->selectedItem();
+	if (lvi) {
+		base->group_buttonModify->setEnabled(true);
+		base->group_buttonDelete->setEnabled(true);
+	}
+	else {
+		base->group_buttonModify->setEnabled(false);
+		base->group_buttonDelete->setEnabled(false);
+	}
+	base->group_buttonAdd->setEnabled(true);
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
@@ -190,21 +213,44 @@ void LDAPConfig::populateGroups() {
 }
 
 void LDAPConfig::updateUsersList() {
+	TQListViewItem* itm = base->user_list->selectedItem();
+	TQString prevSelectedItemText;
+	if (itm) {
+		prevSelectedItemText = itm->text(0);
+	}
+
 	base->user_list->clear();
 	LDAPUserInfoList::Iterator it;
 	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
 		LDAPUserInfo user = *it;
-		(void)new TQListViewItem(base->user_list, user.name, user.commonName, TQString("%1").arg(user.uid));
+		itm = new TQListViewItem(base->user_list, user.name, user.commonName, TQString("%1").arg(user.uid));
+		if (prevSelectedItemText != "") {
+			if (user.name == prevSelectedItemText) {
+				base->user_list->setSelected(itm, true);
+			}
+		}
 	}
+	
 	processLockouts();
 }
 
 void LDAPConfig::updateGroupsList() {
+	TQListViewItem* itm = base->group_list->selectedItem();
+	TQString prevSelectedItemText;
+	if (itm) {
+		prevSelectedItemText = itm->text(0);
+	}
+
 	base->group_list->clear();
 	LDAPGroupInfoList::Iterator it;
 	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
 		LDAPGroupInfo group = *it;
-		(void)new TQListViewItem(base->group_list, group.name, TQString("%1").arg(group.gid));
+		itm = new TQListViewItem(base->group_list, group.name, TQString("%1").arg(group.gid));
+		if (prevSelectedItemText != "") {
+			if (group.name == prevSelectedItemText) {
+				base->group_list->setSelected(itm, true);
+			}
+		}
 	}
 	processLockouts();
 }
@@ -270,7 +316,7 @@ LDAPGroupInfo LDAPConfig::findGroupInfoByGID(TQString gid) {
 }
 
 LDAPUserInfo LDAPConfig::selectedUser() {
-	TQListViewItem* lvi = base->user_list->currentItem();
+	TQListViewItem* lvi = base->user_list->selectedItem();
 	if (!lvi) {
 		return LDAPUserInfo();
 	}
@@ -278,7 +324,7 @@ LDAPUserInfo LDAPConfig::selectedUser() {
 }
 
 LDAPGroupInfo LDAPConfig::selectedGroup() {
-	TQListViewItem* lvi = base->group_list->currentItem();
+	TQListViewItem* lvi = base->group_list->selectedItem();
 	if (!lvi) {
 		return LDAPGroupInfo();
 	}
@@ -354,6 +400,47 @@ void LDAPConfig::groupHighlighted() {
 	processLockouts();
 }
 
+void LDAPConfig::addNewUser() {
+	// Launch a dialog to add the user
+	LDAPUserInfo user;
+
+	// Find the next available, reasonable UID
+	uid_t uid = 100;
+	LDAPUserInfoList::Iterator it;
+	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
+		LDAPUserInfo user = *it;
+		if (user.uid >= uid) {
+			uid = user.uid + 1;
+		}
+	}
+	user.uid = uid;
+
+	UserConfigDialog userconfigdlg(user, this);
+	if (userconfigdlg.exec() == TQDialog::Accepted) {
+		user = userconfigdlg.m_user;
+		if (user.name != "") {
+			// Try to find a reasonable place to stuff the new entry
+			// Do any users exist right now?
+			if (m_userInfoList.begin() != m_userInfoList.end()) {
+				user.distinguishedName = (*m_userInfoList.begin()).distinguishedName;
+				int eqpos = user.distinguishedName.find("=")+1;
+				int cmpos = user.distinguishedName.find(",", eqpos);
+				user.distinguishedName.remove(eqpos, cmpos-eqpos);
+				user.distinguishedName.insert(eqpos, user.name);
+			}
+			else {
+				user.distinguishedName = "uid=" + user.name + "," + m_ldapmanager->basedn();
+			}
+			m_ldapmanager->addUserInfo(user);
+		}
+		else {
+			// PEBKAC
+			KMessageBox::error(0, i18n("<qt>Unable to add new user with no name!<p>Enter a name and try again</qt>"), i18n("Illegal Operation"));
+		}
+	}
+	updateAllInformation();
+}
+
 void LDAPConfig::addNewGroup() {
 	// Launch a dialog to add the group
 	LDAPGroupInfo group;
@@ -403,7 +490,29 @@ void LDAPConfig::modifySelectedUser() {
 	user = m_ldapmanager->getUserByDistinguishedName(user.distinguishedName);
 	UserConfigDialog userconfigdlg(user, this);
 	if (userconfigdlg.exec() == TQDialog::Accepted) {
-		// RAJA FIXME
+		user = userconfigdlg.m_user;
+		if (m_ldapmanager->updateUserInfo(user) == 0) {
+			// Modify group(s) as needed
+			populateGroups();
+			LDAPGroupInfoList::Iterator it;
+			for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+				LDAPGroupInfo group = *it;
+				if (userconfigdlg.selectedGroups.contains(group.name)) {
+					// Make sure that we are in this group!
+					if (!group.userlist.contains(user.distinguishedName)) {
+						group.userlist.append(user.distinguishedName);
+						m_ldapmanager->updateGroupInfo(group);
+					}
+				}
+				else {
+					// Make sure that we are NOT in this group!
+					if (group.userlist.contains(user.distinguishedName)) {
+						group.userlist.remove(user.distinguishedName);
+						m_ldapmanager->updateGroupInfo(group);
+					}
+				}
+			}
+		}
 	}
 	updateAllInformation();
 }
@@ -422,11 +531,20 @@ void LDAPConfig::modifySelectedGroup() {
 	updateAllInformation();
 }
 
+void LDAPConfig::removeSelectedUser() {
+	LDAPUserInfo user = selectedUser();
+
+	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the user %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(user.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
+		m_ldapmanager->deleteUserInfo(user);
+	}
+
+	updateAllInformation();
+}
+
 void LDAPConfig::removeSelectedGroup() {
 	LDAPGroupInfo group = selectedGroup();
 
 	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the group %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(group.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
-		// RAJA FIXME
 		m_ldapmanager->deleteGroupInfo(group);
 	}
 

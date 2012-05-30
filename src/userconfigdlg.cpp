@@ -33,6 +33,7 @@
 #include <tqradiobutton.h>
 #include <tqcheckbox.h>
 #include <kdatetimewidget.h>
+#include <kpassdlg.h>
 
 #include "ldapmgr.h"
 #include "userconfigdlg.h"
@@ -53,6 +54,9 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	m_base->lastChanged->setEnabled(false);
 
 	connect(m_base->loginName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->realName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->surName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->homeDirectory, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->passwordExpireEnabled, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->passwordExpireDisabled, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->requirePasswordAging, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
@@ -109,12 +113,60 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	m_base->requirePasswordMinAge->setChecked(m_user.password_has_minimum_age);
 	m_base->passwordMinAge->setValue(m_user.password_minimum_age/24);
 
+	// User information
+	m_base->givenName->setText(m_user.givenName);
+	m_base->surName->setText(m_user.surName);
+
 	processLockouts();
 }
 
 void UserConfigDialog::slotOk() {
 	// Update data
 	// RAJA FIXME
+	if (m_base->userStatusEnabled->isOn() == true) {
+		m_user.status = KRB5_ACTIVE_DEFAULT;
+	}
+	else {
+		m_user.status = KRB5_DISABLED_ACCOUNT;
+	}
+	m_user.commonName = m_base->realName->text();
+	m_user.uid = m_base->UID->value();
+	m_user.primary_gid = m_ldapconfig->findGroupInfoByName(m_base->primaryGroup->currentText()).gid;
+	m_user.homedir = m_base->homeDirectory->url();
+	m_user.shell = m_base->shell->currentText();
+
+	m_user.new_password = m_base->passwordEntry->password();
+	if (m_base->passwordExpireEnabled->isOn() == true) {
+		m_user.password_expires = true;
+	}
+	else {
+		m_user.password_expires = false;
+	}
+
+	m_user.password_expiration = m_base->expirationDate->dateTime();
+	m_user.password_ages = m_base->requirePasswordAging->isOn();
+	m_user.new_password_interval = m_base->requirePasswordInterval->value()*24;
+	m_user.new_password_warn_interval = m_base->warnPasswordExpireInterval->value()*24;
+	m_user.new_password_lockout_delay = m_base->disablePasswordDelay->value()*24;
+	m_user.password_has_minimum_age = m_base->requirePasswordMinAge->isOn();
+	m_user.password_minimum_age = m_base->passwordMinAge->value()*24;
+
+	selectedGroups.clear();
+	TQListViewItemIterator it(m_base->secondary_group_list);
+	while ( it.current() ) {
+		TQCheckListItem* itm = dynamic_cast<TQCheckListItem*>(it.current());
+		if (itm) {
+			if (itm->isOn()) {
+				selectedGroups.append(itm->text());
+			}
+		}
+		++it;
+	}
+
+
+	// User information
+	m_user.givenName = m_base->givenName->text();
+	m_user.surName = m_base->surName->text();
 
 	// Special handler for new group
 	if (m_user.distinguishedName == "") {
@@ -166,13 +218,22 @@ void UserConfigDialog::processLockouts() {
 		++it;
 	}
 
+	bool ok_enabled = true;
+
 	// Special handler for new group
 	if ((m_user.distinguishedName == "") && (m_base->loginName->text() == "")) {
-		enableButton(KDialogBase::Ok, false);
+		ok_enabled = false;
 	}
-	else {
-		enableButton(KDialogBase::Ok, true);
+	if (m_base->realName->text() == "") {
+		ok_enabled = false;
 	}
+	if (m_base->surName->text() == "") {
+		ok_enabled = false;
+	}
+	if (m_base->homeDirectory->url() == "") {
+		ok_enabled = false;
+	}
+	enableButton(KDialogBase::Ok, ok_enabled);
 
 	m_prevPrimaryGroup = m_base->primaryGroup->currentText();
 }

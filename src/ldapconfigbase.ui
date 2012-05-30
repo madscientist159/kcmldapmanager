@@ -133,7 +133,7 @@
 										<property name="name">
 											<cstring>unnamed_grid3</cstring>
 										</property>
-										<widget class="TQPushButton" row="0" column="0" colspan="0">
+										<widget class="TQPushButton" row="0" column="1" colspan="0">
 											<property name="name">
 												<cstring>user_buttonModify</cstring>
 											</property>
@@ -141,7 +141,7 @@
 												<string>Modify</string>
 											</property>
 										</widget>
-										<widget class="TQPushButton" row="0" column="1" colspan="0">
+										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
 												<cstring>user_buttonAdd</cstring>
 											</property>
@@ -389,7 +389,7 @@
 										<property name="name">
 											<cstring>unnamed_grid6</cstring>
 										</property>
-										<widget class="TQPushButton" row="0" column="0" colspan="0">
+										<widget class="TQPushButton" row="0" column="1" colspan="0">
 											<property name="name">
 												<cstring>group_buttonModify</cstring>
 											</property>
@@ -397,7 +397,7 @@
 												<string>Modify</string>
 											</property>
 										</widget>
-										<widget class="TQPushButton" row="0" column="1" colspan="0">
+										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
 												<cstring>group_buttonAdd</cstring>
 											</property>
@@ -579,7 +579,7 @@
 										<property name="name">
 											<cstring>unnamed</cstring>
 										</property>
-										<widget class="TQPushButton" row="0" column="0" colspan="0">
+										<widget class="TQPushButton" row="0" column="1" colspan="0">
 											<property name="name">
 												<cstring>user_buttonModify</cstring>
 											</property>
@@ -587,7 +587,7 @@
 												<string>Modify</string>
 											</property>
 										</widget>
-										<widget class="TQPushButton" row="0" column="1" colspan="0">
+										<widget class="TQPushButton" row="0" column="0" colspan="0">
 											<property name="name">
 												<cstring>user_buttonAdd</cstring>
 											</property>

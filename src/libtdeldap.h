@@ -82,6 +82,7 @@ class LDAPUserInfo
 		TQString homedir;
 		gid_t primary_gid;
 		LDAPKRB5Flags status;			// Default active user is 586 [KRB5_ACTIVE_DEFAULT] and locked out user is 7586 [KRB5_DISABLED_ACCOUNT]
+		TQCString new_password;
 		TQDateTime account_created;
 		TQDateTime account_modified;
 		TQDateTime password_last_changed;
@@ -176,9 +177,11 @@ class LDAPManager : public TQObject {
 		LDAPGroupInfoList groups();
 		LDAPUserInfo getUserByDistinguishedName(TQString dn);
 		LDAPGroupInfo getGroupByDistinguishedName(TQString dn);
-		int updateUserInfo(LDAPUserInfo group);
+		int updateUserInfo(LDAPUserInfo user);
 		int updateGroupInfo(LDAPGroupInfo group);
+		int addUserInfo(LDAPUserInfo user);
 		int addGroupInfo(LDAPGroupInfo group);
+		int deleteUserInfo(LDAPUserInfo user);
 		int deleteGroupInfo(LDAPGroupInfo group);
 
 	private:

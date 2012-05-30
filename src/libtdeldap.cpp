@@ -384,7 +384,7 @@ printf("[RAJA DEBUG 100.3] %s: %s\n\r", attr, vals[i]->bv_val);
 						// FIXME
 						// This attribute is not present in my current LDAP schema
 // 						userinfo.uniqueIdentifier = vals[i]->bv_val;
-			else if (ldap_field == "preferredLanguage") {
+			else if (ldap_field == "businessCategory") {
 				userinfo.businessCategory = vals[i]->bv_val;
 			}
 			else if (ldap_field == "carLicense") {
@@ -420,9 +420,7 @@ printf("[RAJA DEBUG 100.1] In LDAPManager::users() bind was OK\n\r"); fflush(std
 		LDAPMessage* msg;
 		TQString ldap_base_dn = m_basedc;
 		TQString ldap_filter = "(objectClass=posixAccount)";
-		struct timeval timeout;
-		timeout.tv_sec = 10;	// 10 second timeout
-		retcode = ldap_search_ext_s(m_ldap, ldap_base_dn.ascii(), LDAP_SCOPE_SUBTREE, ldap_filter.ascii(), ldap_user_and_operational_attributes, 0, NULL, NULL, &timeout, 0, &msg);
+		retcode = ldap_search_ext_s(m_ldap, ldap_base_dn.ascii(), LDAP_SCOPE_SUBTREE, ldap_filter.ascii(), ldap_user_and_operational_attributes, 0, NULL, NULL, NULL, 0, &msg);
 		if (retcode != LDAP_SUCCESS) {
 			KMessageBox::error(0, i18n("<qt>LDAP search failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
 			return LDAPUserInfoList();
@@ -510,21 +508,25 @@ LDAPGroupInfo LDAPManager::getGroupByDistinguishedName(TQString dn) {
 }
 
 void create_single_attribute_operation(LDAPMod **mods, int *i, TQString attr, TQString value) {
-	char **values = (char**)malloc(2*sizeof(char*));
-	values[0] = strdup(value.ascii());
-	values[1] = NULL;
-	mods[*i]->mod_op = LDAP_MOD_ADD;
-	mods[*i]->mod_type = strdup(attr.ascii());
-	mods[*i]->mod_values = values;
-	(*i)++;
+	if (value != "") {
+		char **values = (char**)malloc(2*sizeof(char*));
+		values[0] = strdup(value.ascii());
+		values[1] = NULL;
+		mods[*i]->mod_op = LDAP_MOD_ADD;
+		mods[*i]->mod_type = strdup(attr.ascii());
+		mods[*i]->mod_values = values;
+		(*i)++;
+	}
 }
 
 void create_multiple_attributes_operation(LDAPMod **mods, int *i, TQString attr, TQStringList strings) {
 	int j=0;
 	char **values = (char**)malloc((strings.count()+1)*sizeof(char*));
 	for ( TQStringList::Iterator it = strings.begin(); it != strings.end(); ++it ) {
-		values[j] = strdup((*it).ascii());
-		j++;
+		if ((*it) != "") {
+			values[j] = strdup((*it).ascii());
+			j++;
+		}
 	}
 	values[j] = NULL;
 	mods[*i]->mod_op = LDAP_MOD_ADD;
@@ -534,34 +536,28 @@ void create_multiple_attributes_operation(LDAPMod **mods, int *i, TQString attr,
 }
 
 void add_single_attribute_operation(LDAPMod **mods, int *i, TQString attr, TQString value) {
-	mods[*i]->mod_op = LDAP_MOD_DELETE;
-	mods[*i]->mod_type = strdup(attr.ascii());
-	mods[*i]->mod_values = NULL;
-	(*i)++;
-
-	char **values = (char**)malloc(2*sizeof(char*));
-	values[0] = strdup(value.ascii());
-	values[1] = NULL;
-	mods[*i]->mod_op = LDAP_MOD_ADD;
-	mods[*i]->mod_type = strdup(attr.ascii());
-	mods[*i]->mod_values = values;
-	(*i)++;
+	if (value != "") {
+		char **values = (char**)malloc(2*sizeof(char*));
+		values[0] = strdup(value.ascii());
+		values[1] = NULL;
+		mods[*i]->mod_op = LDAP_MOD_REPLACE;
+		mods[*i]->mod_type = strdup(attr.ascii());
+		mods[*i]->mod_values = values;
+		(*i)++;
+	}
 }
 
 void add_multiple_attributes_operation(LDAPMod **mods, int *i, TQString attr, TQStringList strings) {
-	mods[*i]->mod_op = LDAP_MOD_DELETE;
-	mods[*i]->mod_type = strdup(attr.ascii());
-	mods[*i]->mod_values = NULL;
-	(*i)++;
-
 	int j=0;
 	char **values = (char**)malloc((strings.count()+1)*sizeof(char*));
 	for ( TQStringList::Iterator it = strings.begin(); it != strings.end(); ++it ) {
-		values[j] = strdup((*it).ascii());
-		j++;
+		if ((*it) != "") {
+			values[j] = strdup((*it).ascii());
+			j++;
+		}
 	}
 	values[j] = NULL;
-	mods[*i]->mod_op = LDAP_MOD_ADD;
+	mods[*i]->mod_op = LDAP_MOD_REPLACE;
 	mods[*i]->mod_type = strdup(attr.ascii());
 	mods[*i]->mod_values = values;
 	(*i)++;
@@ -577,9 +573,8 @@ int LDAPManager::updateUserInfo(LDAPUserInfo user) {
 	}
 	else {
 		// Assemble the LDAPMod structure
-		// We will replace attributes by first deleting them, then adding them back with their new values
-		int number_of_parameters = 43;				// 43 primary attributes
-		number_of_parameters = (number_of_parameters * 2);	// MODIFY/DELETE
+		// We will replace any existing attributes with the new values
+		int number_of_parameters = 40;				// 40 primary attributes
 		LDAPMod *mods[number_of_parameters+1];
 		for (i=0;i<number_of_parameters;i++) {
 			mods[i] = new LDAPMod;
@@ -591,13 +586,68 @@ int LDAPManager::updateUserInfo(LDAPUserInfo user) {
 		// Load LDAP modification requests from provided data structure
 		i=0;
 		add_single_attribute_operation(mods, &i, "uidNumber", TQString("%1").arg(user.uid));
-		// RAJA FIXME
-		// Add the other 42 primary attributes!
+		add_single_attribute_operation(mods, &i, "loginShell", user.shell);
+		add_single_attribute_operation(mods, &i, "homeDirectory", user.homedir);
+		add_single_attribute_operation(mods, &i, "gidNumber", TQString("%1").arg(user.primary_gid));
+		add_single_attribute_operation(mods, &i, "krb5KDCFlags", TQString("%1").arg(user.status));			// Default active user is 586 [KRB5_ACTIVE_DEFAULT] and locked out user is 7586 [KRB5_DISABLED_ACCOUNT]
+// 		add_single_attribute_operation(mods, &i, "", user.password_expires);
+// 		add_single_attribute_operation(mods, &i, "", user.password_expiration);
+// 		add_single_attribute_operation(mods, &i, "", user.password_ages);
+// 		add_single_attribute_operation(mods, &i, "", user.new_password_interval);
+// 		add_single_attribute_operation(mods, &i, "", user.new_password_warn_interval);
+// 		add_single_attribute_operation(mods, &i, "", user.new_password_lockout_delay);
+// 		add_single_attribute_operation(mods, &i, "", user.password_has_minimum_age);
+// 		add_single_attribute_operation(mods, &i, "", user.password_minimum_age);
+		add_single_attribute_operation(mods, &i, "krb5MaxLife", TQString("%1").arg(user.maximum_ticket_lifetime));
+		add_single_attribute_operation(mods, &i, "cn", user.commonName);
+		add_single_attribute_operation(mods, &i, "givenName", user.givenName);
+		add_single_attribute_operation(mods, &i, "sn", user.surName);
+		add_single_attribute_operation(mods, &i, "initials", user.initials);
+		add_single_attribute_operation(mods, &i, "title", user.title);
+		add_single_attribute_operation(mods, &i, "mail", user.email);
+		add_single_attribute_operation(mods, &i, "description", user.description);
+		add_single_attribute_operation(mods, &i, "l", user.locality);
+		add_single_attribute_operation(mods, &i, "telephoneNumber", user.telephoneNumber);
+		add_single_attribute_operation(mods, &i, "facsimileTelephoneNumber", user.faxNumber);
+		add_single_attribute_operation(mods, &i, "homePhone", user.homePhone);
+		add_single_attribute_operation(mods, &i, "mobile", user.mobilePhone);
+		add_single_attribute_operation(mods, &i, "pager", user.pagerNumber);
+// 		add_single_attribute_operation(mods, &i, "", user.website);
+		add_single_attribute_operation(mods, &i, "postOfficeBox", user.poBox);
+		add_single_attribute_operation(mods, &i, "street", user.street);
+		add_single_attribute_operation(mods, &i, "postalAddress", user.address);
+		add_single_attribute_operation(mods, &i, "st", user.state);
+		add_single_attribute_operation(mods, &i, "postalCode", user.postcode);
+		add_single_attribute_operation(mods, &i, "registeredAddress", user.registeredAddress);
+		add_single_attribute_operation(mods, &i, "homePostalAddress", user.homeAddress);
+		add_single_attribute_operation(mods, &i, "seeAlso", user.seeAlso);
+		add_single_attribute_operation(mods, &i, "physicalDeliveryOfficeName", user.deliveryOffice);
+		add_single_attribute_operation(mods, &i, "departmentNumber", user.department);
+		add_single_attribute_operation(mods, &i, "roomNumber", user.roomNumber);
+		add_single_attribute_operation(mods, &i, "employeeType", user.employeeType);
+		add_single_attribute_operation(mods, &i, "employeeNumber", user.employeeNumber);
+// 		add_single_attribute_operation(mods, &i, "", user.manager);
+// 		add_single_attribute_operation(mods, &i, "", user.secretary);
+		add_single_attribute_operation(mods, &i, "internationaliSDNNumber", user.isdnNumber);
+// 		add_single_attribute_operation(mods, &i, "", user.teletexID);
+		add_single_attribute_operation(mods, &i, "telexNumber", user.telexNumber);
+// 		add_single_attribute_operation(mods, &i, "", user.preferredDelivery);
+		add_single_attribute_operation(mods, &i, "destinationIndicator", user.destinationIndicator);
+		add_single_attribute_operation(mods, &i, "x121Address", user.x121Address);
+		add_single_attribute_operation(mods, &i, "displayName", user.displayName);
+		add_single_attribute_operation(mods, &i, "preferredLanguage", user.preferredLanguage);
+// 		add_single_attribute_operation(mods, &i, "", user.uniqueIdentifier);
+		add_single_attribute_operation(mods, &i, "businessCategory", user.businessCategory);
+		add_single_attribute_operation(mods, &i, "carLicense", user.carLicense);
+// 		add_single_attribute_operation(mods, &i, "", user.notes);
+		LDAPMod *prevterm = mods[i];
+		mods[i] = NULL;
 
 		// Perform LDAP update
 		retcode = ldap_modify_ext_s(m_ldap, user.distinguishedName.ascii(), mods, NULL, NULL);
 
 		// Clean up
+		mods[i] = prevterm;
 		for (i=0;i<number_of_parameters;i++) {
 			if (mods[i]->mod_type != NULL) {
 				free(mods[i]->mod_type);
@@ -633,9 +683,8 @@ int LDAPManager::updateGroupInfo(LDAPGroupInfo group) {
 	}
 	else {
 		// Assemble the LDAPMod structure
-		// We will replace attributes by first deleting them, then adding them back with their new values
+		// We will replace any existing attributes with the new values
 		int number_of_parameters = 2;				// 2 primary attributes
-		number_of_parameters = (number_of_parameters * 2);	// MODIFY/DELETE
 		LDAPMod *mods[number_of_parameters+1];
 		for (i=0;i<number_of_parameters;i++) {
 			mods[i] = new LDAPMod;
@@ -653,11 +702,14 @@ int LDAPManager::updateGroupInfo(LDAPGroupInfo group) {
 			completeGroupList.prepend(placeholderGroup);
 		}
 		add_multiple_attributes_operation(mods, &i, "member", completeGroupList);
+		LDAPMod *prevterm = mods[i];
+		mods[i] = NULL;
 
 		// Perform LDAP update
 		retcode = ldap_modify_ext_s(m_ldap, group.distinguishedName.ascii(), mods, NULL, NULL);
 
 		// Clean up
+		mods[i] = prevterm;
 		for (i=0;i<number_of_parameters;i++) {
 			if (mods[i]->mod_type != NULL) {
 				free(mods[i]->mod_type);
@@ -683,6 +735,75 @@ int LDAPManager::updateGroupInfo(LDAPGroupInfo group) {
 	}
 }
 
+int LDAPManager::addUserInfo(LDAPUserInfo user) {
+	int retcode;
+	int i;
+	LDAPUserInfo userinfo;
+
+	if (bind() < 0) {
+		return -1;
+	}
+	else {
+		// Create the base DN entry
+		int number_of_parameters = 13;				// 13 primary attributes
+		LDAPMod *mods[number_of_parameters+1];
+		for (i=0;i<number_of_parameters;i++) {
+			mods[i] = new LDAPMod;
+			mods[i]->mod_type = NULL;
+			mods[i]->mod_values = NULL;
+		}
+		mods[number_of_parameters] = NULL;
+
+		// Load initial required LDAP object attributes
+		i=0;
+		create_single_attribute_operation(mods, &i, "uidNumber", TQString("%1").arg(user.uid));
+		create_single_attribute_operation(mods, &i, "gidNumber", TQString("%1").arg(user.primary_gid));
+		create_multiple_attributes_operation(mods, &i, "objectClass", TQStringList::split(" ", "inetOrgPerson krb5Realm krb5Principal krb5KDCEntry emsUser posixAccount"));
+		create_single_attribute_operation(mods, &i, "uid", user.name);
+		create_single_attribute_operation(mods, &i, "cn", user.commonName);
+		create_single_attribute_operation(mods, &i, "sn", user.surName);
+		create_single_attribute_operation(mods, &i, "homeDirectory", user.homedir);
+		// Kerberos
+		create_single_attribute_operation(mods, &i, "krb5KeyVersionNumber", "1");
+		create_single_attribute_operation(mods, &i, "krb5PrincipalName", TQString(user.name.lower()) + "@" + m_realm.upper());
+		create_single_attribute_operation(mods, &i, "krb5RealmName", m_realm.upper());
+		// Zivios specific
+		create_single_attribute_operation(mods, &i, "emsdescription", "None");
+		create_single_attribute_operation(mods, &i, "emsprimarygroupdn", "None");
+		create_single_attribute_operation(mods, &i, "emstype", "UserEntry");
+		LDAPMod *prevterm = mods[i];
+		mods[i] = NULL;
+
+		// Add new object
+		retcode = ldap_add_ext_s(m_ldap, user.distinguishedName.ascii(), mods, NULL, NULL);
+
+		// Clean up
+		mods[i] = prevterm;
+		for (i=0;i<number_of_parameters;i++) {
+			if (mods[i]->mod_type != NULL) {
+				free(mods[i]->mod_type);
+			}
+			if (mods[i]->mod_values != NULL) {
+				int j = 0;
+				while (mods[i]->mod_values[j] != NULL) {
+					free(mods[i]->mod_values[j]);
+					j++;
+				}
+				free(mods[i]->mod_values);
+			}
+			delete mods[i];
+		}
+
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP addition failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return -2;
+		}
+		else {
+			return updateUserInfo(user);
+		}
+	}
+}
+
 int LDAPManager::addGroupInfo(LDAPGroupInfo group) {
 	int retcode;
 	int i;
@@ -693,7 +814,7 @@ int LDAPManager::addGroupInfo(LDAPGroupInfo group) {
 	}
 	else {
 		// Create the base DN entry
-		int number_of_parameters = 6;				// 3 primary attributes
+		int number_of_parameters = 6;				// 6 primary attributes
 		LDAPMod *mods[number_of_parameters+1];
 		for (i=0;i<number_of_parameters;i++) {
 			mods[i] = new LDAPMod;
@@ -713,11 +834,14 @@ int LDAPManager::addGroupInfo(LDAPGroupInfo group) {
 		// Zivios specific
 		create_single_attribute_operation(mods, &i, "emsdescription", "None");
 		create_single_attribute_operation(mods, &i, "emstype", "GroupEntry");
+		LDAPMod *prevterm = mods[i];
+		mods[i] = NULL;
 
 		// Add new object
 		retcode = ldap_add_ext_s(m_ldap, group.distinguishedName.ascii(), mods, NULL, NULL);
 
 		// Clean up
+		mods[i] = prevterm;
 		for (i=0;i<number_of_parameters;i++) {
 			if (mods[i]->mod_type != NULL) {
 				free(mods[i]->mod_type);
@@ -739,6 +863,26 @@ int LDAPManager::addGroupInfo(LDAPGroupInfo group) {
 		}
 		else {
 			return updateGroupInfo(group);
+		}
+	}
+}
+
+int LDAPManager::deleteUserInfo(LDAPUserInfo user) {
+	int retcode;
+	LDAPUserInfo userinfo;
+
+	if (bind() < 0) {
+		return -1;
+	}
+	else {
+		// Delete the base DN entry
+		retcode = ldap_delete_ext_s(m_ldap, user.distinguishedName.ascii(), NULL, NULL);
+		if (retcode != LDAP_SUCCESS) {
+			KMessageBox::error(0, i18n("<qt>LDAP deletion failure<p>Reason: [%3] %4</qt>").arg(retcode).arg(ldap_err2string(retcode)), i18n("LDAP Error"));
+			return -2;
+		}
+		else {
+			return 0;
 		}
 	}
 }

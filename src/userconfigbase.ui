@@ -128,7 +128,7 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Login Name</string>
+								<string>Login Name*</string>
 							</property>
 						</widget>
 						<widget class="KLineEdit" row="1" column="2" colspan="3">
@@ -141,7 +141,7 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Real Name</string>
+								<string>Real Name*</string>
 							</property>
 						</widget>
 						<widget class="KLineEdit" row="2" column="2" colspan="3">
@@ -149,7 +149,7 @@
 								<cstring>realName</cstring>
 							</property>
 						</widget>
-						<widget class="TQLabel" row="2" column="0" colspan="2">
+						<widget class="TQLabel" row="3" column="0" colspan="2">
 							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
@@ -157,7 +157,7 @@
 								<string>User ID</string>
 							</property>
 						</widget>
-						<widget class="KIntNumInput" row="2" column="2" colspan="3">
+						<widget class="KIntNumInput" row="3" column="2" colspan="3">
 							<property name="name">
 								<cstring>UID</cstring>
 							</property>
@@ -168,7 +168,7 @@
 								<number>99999</number>
 							</property>
 						</widget>
-						<widget class="TQLabel" row="3" column="0" colspan="2">
+						<widget class="TQLabel" row="4" column="0" colspan="2">
 							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
@@ -176,25 +176,9 @@
 								<string>Primary Group</string>
 							</property>
 						</widget>
-						<widget class="KComboBox" row="3" column="2" colspan="3">
+						<widget class="KComboBox" row="4" column="2" colspan="3">
 							<property name="name">
 								<cstring>primaryGroup</cstring>
-							</property>
-						</widget>
-						<widget class="TQLabel" row="4" column="0" colspan="2">
-							<property name="name">
-								<cstring>unnamed</cstring>
-							</property>
-							<property name="text">
-								<string>Home Directory</string>
-							</property>
-						</widget>
-						<widget class="KURLRequester" row="4" column="2" colspan="3">
-							<property name="name">
-								<cstring>homeDirectory</cstring>
-							</property>
-							<property name="mode">
-								<number>18</number>
 							</property>
 						</widget>
 						<widget class="TQLabel" row="5" column="0" colspan="2">
@@ -202,10 +186,26 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Shell</string>
+								<string>Home Directory*</string>
 							</property>
 						</widget>
-						<widget class="KComboBox" row="5" column="2" colspan="3">
+						<widget class="KURLRequester" row="5" column="2" colspan="3">
+							<property name="name">
+								<cstring>homeDirectory</cstring>
+							</property>
+							<property name="mode">
+								<number>18</number>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="6" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Shell*</string>
+							</property>
+						</widget>
+						<widget class="KComboBox" row="6" column="2" colspan="3">
 							<property name="name">
 								<cstring>shell</cstring>
 							</property>
@@ -216,6 +216,62 @@
 						<spacer row="10" column="0">
 							<property name="name" stdset="0">
 								<cstring>Spacer2</cstring>
+							</property>
+							<property name="orientation">
+								<enum>Vertical</enum>
+							</property>
+							<property name="sizeType">
+								<enum>Expanding</enum>
+							</property>
+							<property name="sizeHint">
+								<size>
+									<width>20</width>
+									<height>20</height>
+								</size>
+							</property>
+						</spacer>
+					</grid>
+				</widget>
+				<widget class="TQWidget">
+					<property name="name">
+						<cstring>userTab</cstring>
+					</property>
+					<attribute name="title">
+						<string>User Information</string>
+					</attribute>
+					<grid>
+						<property name="name">
+							<cstring>unnamed</cstring>
+						</property>
+						<widget class="TQLabel" row="0" column="0" colspan="1">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Given Name</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="0" column="1" colspan="1">
+							<property name="name">
+								<cstring>givenName</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="0" column="2" colspan="1">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Surname*</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="0" column="3" colspan="1">
+							<property name="name">
+								<cstring>surName</cstring>
+							</property>
+						</widget>
+						<spacer row="10" column="0">
+							<property name="name" stdset="0">
+								<cstring>Spacer20</cstring>
 							</property>
 							<property name="orientation">
 								<enum>Vertical</enum>
