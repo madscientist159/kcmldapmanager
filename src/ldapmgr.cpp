@@ -84,8 +84,10 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 
+	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
 	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
+	connect(base->group_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedGroup()));
 	
 	load();
 	
@@ -108,6 +110,8 @@ void LDAPConfig::load() {
 	// Load realms
 	int i;
 	base->user_ldapRealm->clear();
+	base->group_ldapRealm->clear();
+	base->machine_ldapRealm->clear();
 	TQStringList cfgRealms = m_systemconfig->groupList();
 	for (TQStringList::Iterator it(cfgRealms.begin()); it != cfgRealms.end(); ++it) {
 		if ((*it).startsWith("LDAPRealm-")) {
@@ -115,6 +119,8 @@ void LDAPConfig::load() {
 			TQString realmName=*it;
 			realmName.remove(0,strlen("LDAPRealm-"));
 			base->user_ldapRealm->insertItem(realmName);
+			base->group_ldapRealm->insertItem(realmName);
+			base->machine_ldapRealm->insertItem(realmName);
 		}
 	}
 	TQString defaultRealm = m_systemconfig->readEntry("DefaultRealm", TQString::null);
@@ -122,6 +128,8 @@ void LDAPConfig::load() {
 		for (i=0; i<base->user_ldapRealm->count(); i++) {
 			if (base->user_ldapRealm->text(i).lower() == defaultRealm.lower()) {
 				base->user_ldapRealm->setCurrentItem(i);
+				base->group_ldapRealm->setCurrentItem(i);
+				base->machine_ldapRealm->setCurrentItem(i);
 				break;
 			}
 		}
@@ -343,9 +351,48 @@ void LDAPConfig::groupHighlighted() {
 		(void)new TQListViewItem(base->group_memberList, user.name, user.commonName, TQString("%1").arg(user.uid));
 	}
 
-	// RAJA FIXME
-
 	processLockouts();
+}
+
+void LDAPConfig::addNewGroup() {
+	// Launch a dialog to add the group
+	LDAPGroupInfo group;
+
+	// Find the next available, reasonable GID
+	gid_t gid = 100;
+	LDAPGroupInfoList::Iterator it;
+	for (it = m_groupInfoList.begin(); it != m_groupInfoList.end(); ++it) {
+		LDAPGroupInfo group = *it;
+		if (group.gid >= gid) {
+			gid = group.gid + 1;
+		}
+	}
+	group.gid = gid;
+
+	GroupConfigDialog groupconfigdlg(group, this);
+	if (groupconfigdlg.exec() == TQDialog::Accepted) {
+		group = groupconfigdlg.m_group;
+		if (group.name != "") {
+			// Try to find a reasonable place to stuff the new entry
+			// Do any groups exist right now?
+			if (m_groupInfoList.begin() != m_groupInfoList.end()) {
+				group.distinguishedName = (*m_groupInfoList.begin()).distinguishedName;
+				int eqpos = group.distinguishedName.find("=")+1;
+				int cmpos = group.distinguishedName.find(",", eqpos);
+				group.distinguishedName.remove(eqpos, cmpos-eqpos);
+				group.distinguishedName.insert(eqpos, group.name);
+			}
+			else {
+				group.distinguishedName = "cn=" + group.name + "," + m_ldapmanager->basedn();
+			}
+			m_ldapmanager->addGroupInfo(group);
+		}
+		else {
+			// PEBKAC
+			KMessageBox::error(0, i18n("<qt>Unable to add new group with no name!<p>Enter a name and try again</qt>"), i18n("Illegal Operation"));
+		}
+	}
+	updateAllInformation();
 }
 
 void LDAPConfig::modifySelectedUser() {
@@ -362,7 +409,7 @@ void LDAPConfig::modifySelectedUser() {
 }
 
 void LDAPConfig::modifySelectedGroup() {
-	// Launch a dialog to edit the user
+	// Launch a dialog to edit the group
 	LDAPGroupInfo group = selectedGroup();
 
 	// Reload group data from LDAP before launching dialog
@@ -371,8 +418,18 @@ void LDAPConfig::modifySelectedGroup() {
 	if (groupconfigdlg.exec() == TQDialog::Accepted) {
 		group = groupconfigdlg.m_group;
 		m_ldapmanager->updateGroupInfo(group);
-		// RAJA FIXME
 	}
+	updateAllInformation();
+}
+
+void LDAPConfig::removeSelectedGroup() {
+	LDAPGroupInfo group = selectedGroup();
+
+	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the group %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(group.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
+		// RAJA FIXME
+		m_ldapmanager->deleteGroupInfo(group);
+	}
+
 	updateAllInformation();
 }
 

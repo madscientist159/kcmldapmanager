@@ -45,10 +45,13 @@ GroupConfigDialog::GroupConfigDialog(LDAPGroupInfo group, LDAPConfig* parent, co
 
 	m_base->addToGroup->setText(i18n("-->"));
 	m_base->removeFromGroup->setText(i18n("<--"));
-	m_base->groupName->setEnabled(false);
+	if (group.distinguishedName != "") {
+		m_base->groupName->setEnabled(false);
+	}
 
 	connect(m_base->addToGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(addSelectedUserToGroup()));
 	connect(m_base->removeFromGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUserFromGroup()));
+	connect(m_base->groupName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 
 	// Update fields
 	m_base->groupName->setText(m_group.name);
@@ -72,7 +75,7 @@ GroupConfigDialog::GroupConfigDialog(LDAPGroupInfo group, LDAPConfig* parent, co
 }
 
 void GroupConfigDialog::slotOk() {
-	int i;
+	unsigned int i;
 
 	// Update data
 	m_group.gid = m_base->groupID->value();
@@ -85,11 +88,22 @@ void GroupConfigDialog::slotOk() {
 	}
 	m_group.userlist = userlist;
 
+	// Special handler for new group
+	if (m_group.distinguishedName == "") {
+		m_group.name = m_base->groupName->text();
+	}
+
 	accept();
 }
 
 void GroupConfigDialog::processLockouts() {
-	//
+	// Special handler for new group
+	if ((m_group.distinguishedName == "") && (m_base->groupName->text() == "")) {
+		enableButton(KDialogBase::Ok, false);
+	}
+	else {
+		enableButton(KDialogBase::Ok, true);
+	}
 }
 
 void GroupConfigDialog::addSelectedUserToGroup() {

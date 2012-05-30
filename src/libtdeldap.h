@@ -169,13 +169,17 @@ class LDAPManager : public TQObject {
 		~LDAPManager();
 
 		TQString realm();
+		TQString basedn();
 		int bind();
 		int unbind(bool force);
 		LDAPUserInfoList users();
 		LDAPGroupInfoList groups();
 		LDAPUserInfo getUserByDistinguishedName(TQString dn);
 		LDAPGroupInfo getGroupByDistinguishedName(TQString dn);
+		int updateUserInfo(LDAPUserInfo group);
 		int updateGroupInfo(LDAPGroupInfo group);
+		int addGroupInfo(LDAPGroupInfo group);
+		int deleteGroupInfo(LDAPGroupInfo group);
 
 	private:
 		LDAPUserInfo parseLDAPUserRecord(LDAPMessage* entry);

@@ -59,8 +59,10 @@ class LDAPConfig: public KCModule
 		void updateGroupsList();
 		void userHighlighted();
 		void groupHighlighted();
+		void addNewGroup();
 		void modifySelectedUser();
 		void modifySelectedGroup();
+		void removeSelectedGroup();
 		void updateAllInformation();
 
 	public:

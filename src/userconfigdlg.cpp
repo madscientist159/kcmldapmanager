@@ -47,9 +47,12 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	for ( TQStringList::Iterator it = availableShells.begin(); it != availableShells.end(); ++it ) {
 		m_base->shell->insertItem(*it, -1);
 	}
-	m_base->loginName->setEnabled(false);
+	if (user.distinguishedName != "") {
+		m_base->loginName->setEnabled(false);
+	}
 	m_base->lastChanged->setEnabled(false);
 
+	connect(m_base->loginName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->passwordExpireEnabled, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->passwordExpireDisabled, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->requirePasswordAging, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
@@ -113,6 +116,11 @@ void UserConfigDialog::slotOk() {
 	// Update data
 	// RAJA FIXME
 
+	// Special handler for new group
+	if (m_user.distinguishedName == "") {
+		m_user.name = m_base->loginName->text();
+	}
+
 	accept();
 }
 
@@ -156,6 +164,14 @@ void UserConfigDialog::processLockouts() {
 			}
 		}
 		++it;
+	}
+
+	// Special handler for new group
+	if ((m_user.distinguishedName == "") && (m_base->loginName->text() == "")) {
+		enableButton(KDialogBase::Ok, false);
+	}
+	else {
+		enableButton(KDialogBase::Ok, true);
 	}
 
 	m_prevPrimaryGroup = m_base->primaryGroup->currentText();
