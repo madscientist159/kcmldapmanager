@@ -38,6 +38,14 @@
 							<property name="name">
 								<cstring>detailsIcon</cstring>
 							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>0</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
 						</widget>
 						<widget class="TQLabel" row="0" column="1" colspan="1">
 							<property name="name">
@@ -54,7 +62,7 @@
 							<property name="sizePolicy">
 								<sizepolicy>
 									<hsizetype>5</hsizetype>
-									<vsizetype>4</vsizetype>
+									<vsizetype>5</vsizetype>
 									<horstretch>0</horstretch>
 									<verstretch>0</verstretch>
 								</sizepolicy>
@@ -90,6 +98,14 @@
 									<property name="name">
 										<cstring>enabledIcon</cstring>
 									</property>
+									<property name="sizePolicy">
+										<sizepolicy>
+											<hsizetype>4</hsizetype>
+											<vsizetype>5</vsizetype>
+											<horstretch>0</horstretch>
+											<verstretch>0</verstretch>
+										</sizepolicy>
+									</property>
 								</widget>
 								<widget class="TQRadioButton" row="0" column="2" colspan="1">
 									<property name="name">
@@ -102,6 +118,14 @@
 								<widget class="TQLabel" row="0" column="3" colspan="1">
 									<property name="name">
 										<cstring>disabledIcon</cstring>
+									</property>
+									<property name="sizePolicy">
+										<sizepolicy>
+											<hsizetype>4</hsizetype>
+											<vsizetype>5</vsizetype>
+											<horstretch>0</horstretch>
+											<verstretch>0</verstretch>
+										</sizepolicy>
 									</property>
 								</widget>
 							</grid>
@@ -141,7 +165,7 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Real Name*</string>
+								<string>Display Name*</string>
 							</property>
 						</widget>
 						<widget class="KLineEdit" row="2" column="2" colspan="3">
@@ -149,7 +173,24 @@
 								<cstring>realName</cstring>
 							</property>
 						</widget>
-						<widget class="TQLabel" row="3" column="0" colspan="2">
+						<widget class="TQFrame" row="3" column="0" colspan="5">
+							<property name="name">
+								<cstring>unnamed_separator</cstring>
+							</property>
+							<property name="name">
+								<cstring>unnamed_separator</cstring>
+							</property>
+							<property name="minimumHeight">
+								<number>25</number>
+							</property>
+							<property name="frameShape">
+								<enum>HLine</enum>
+							</property>
+							<property name="frameShadow">
+								<enum>Sunken</enum>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="4" column="0" colspan="2">
 							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
@@ -157,7 +198,7 @@
 								<string>User ID</string>
 							</property>
 						</widget>
-						<widget class="KIntNumInput" row="3" column="2" colspan="3">
+						<widget class="KIntNumInput" row="4" column="2" colspan="3">
 							<property name="name">
 								<cstring>UID</cstring>
 							</property>
@@ -168,7 +209,7 @@
 								<number>99999</number>
 							</property>
 						</widget>
-						<widget class="TQLabel" row="4" column="0" colspan="2">
+						<widget class="TQLabel" row="5" column="0" colspan="2">
 							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
@@ -176,25 +217,9 @@
 								<string>Primary Group</string>
 							</property>
 						</widget>
-						<widget class="KComboBox" row="4" column="2" colspan="3">
+						<widget class="KComboBox" row="5" column="2" colspan="3">
 							<property name="name">
 								<cstring>primaryGroup</cstring>
-							</property>
-						</widget>
-						<widget class="TQLabel" row="5" column="0" colspan="2">
-							<property name="name">
-								<cstring>unnamed</cstring>
-							</property>
-							<property name="text">
-								<string>Home Directory*</string>
-							</property>
-						</widget>
-						<widget class="KURLRequester" row="5" column="2" colspan="3">
-							<property name="name">
-								<cstring>homeDirectory</cstring>
-							</property>
-							<property name="mode">
-								<number>18</number>
 							</property>
 						</widget>
 						<widget class="TQLabel" row="6" column="0" colspan="2">
@@ -202,10 +227,26 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Shell*</string>
+								<string>Home Directory*</string>
 							</property>
 						</widget>
-						<widget class="KComboBox" row="6" column="2" colspan="3">
+						<widget class="KURLRequester" row="6" column="2" colspan="3">
+							<property name="name">
+								<cstring>homeDirectory</cstring>
+							</property>
+							<property name="mode">
+								<number>18</number>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="7" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Shell</string>
+							</property>
+						</widget>
+						<widget class="KComboBox" row="7" column="2" colspan="3">
 							<property name="name">
 								<cstring>shell</cstring>
 							</property>
@@ -245,28 +286,157 @@
 						</property>
 						<widget class="TQLabel" row="0" column="0" colspan="1">
 							<property name="name">
+								<cstring>userIcon</cstring>
+							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>0</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="0" column="1" colspan="4">
+							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Given Name</string>
+								<string>Detailed User Information</string>
 							</property>
 						</widget>
-						<widget class="KLineEdit" row="0" column="1" colspan="1">
+						<widget class="TQLabel" row="1" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>First Name</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="1" column="2" colspan="1">
 							<property name="name">
 								<cstring>givenName</cstring>
 							</property>
 						</widget>
-						<widget class="TQLabel" row="0" column="2" colspan="1">
+						<widget class="TQLabel" row="1" column="3" colspan="1">
 							<property name="name">
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Surname*</string>
+								<string>Initials</string>
 							</property>
 						</widget>
-						<widget class="KLineEdit" row="0" column="3" colspan="1">
+						<widget class="KLineEdit" row="1" column="4" colspan="1">
+							<property name="name">
+								<cstring>initials</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="2" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Last Name*</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="2" column="2" colspan="3">
 							<property name="name">
 								<cstring>surName</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="3" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Title</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="3" column="2" colspan="3">
+							<property name="name">
+								<cstring>title</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="4" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Description</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="4" column="2" colspan="3">
+							<property name="name">
+								<cstring>description</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="5" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Office</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="5" column="2" colspan="3">
+							<property name="name">
+								<cstring>office</cstring>
+							</property>
+						</widget>
+						<widget class="TQFrame" row="6" column="0" colspan="5">
+							<property name="name">
+								<cstring>unnamed_separator</cstring>
+							</property>
+							<property name="name">
+								<cstring>unnamed_separator</cstring>
+							</property>
+							<property name="minimumHeight">
+								<number>25</number>
+							</property>
+							<property name="frameShape">
+								<enum>HLine</enum>
+							</property>
+							<property name="frameShadow">
+								<enum>Sunken</enum>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="7" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Telephone Number</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="7" column="2" colspan="3">
+							<property name="name">
+								<cstring>telephoneNumber</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="8" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Facsimile Number</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="8" column="2" colspan="3">
+							<property name="name">
+								<cstring>faxNumber</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="9" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Email Address</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="9" column="2" colspan="3">
+							<property name="name">
+								<cstring>email</cstring>
 							</property>
 						</widget>
 						<spacer row="10" column="0">
@@ -302,6 +472,14 @@
 						<widget class="TQLabel" row="0" column="0" colspan="1">
 							<property name="name">
 								<cstring>groupsIcon</cstring>
+							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>0</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
 							</property>
 						</widget>
 						<widget class="TQLabel" row="0" column="1" colspan="1">
@@ -382,6 +560,14 @@
 							<property name="name">
 								<cstring>passwordIcon</cstring>
 							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>0</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
 						</widget>
 						<widget class="TQLabel" row="0" column="1" colspan="1">
 							<property name="name">
@@ -430,7 +616,7 @@
 							<property name="sizePolicy">
 								<sizepolicy>
 									<hsizetype>5</hsizetype>
-									<vsizetype>4</vsizetype>
+									<vsizetype>5</vsizetype>
 									<horstretch>0</horstretch>
 									<verstretch>0</verstretch>
 								</sizepolicy>
@@ -527,6 +713,14 @@
 									</property>
 									<property name="text">
 										<string>Require new password after:</string>
+									</property>
+									<property name="sizePolicy">
+										<sizepolicy>
+											<hsizetype>5</hsizetype>
+											<vsizetype>5</vsizetype>
+											<horstretch>1</horstretch>
+											<verstretch>0</verstretch>
+										</sizepolicy>
 									</property>
 								</widget>
 								<widget class="TQSpinBox" row="0" column="2" colspan="1">

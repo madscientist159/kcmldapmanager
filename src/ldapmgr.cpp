@@ -38,6 +38,7 @@
 #include <kcombobox.h>
 #include <kmessagebox.h>
 #include <klineedit.h>
+#include <kiconloader.h>
 
 #include <tdesu/process.h>
 
@@ -83,6 +84,10 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 
 	base->machine_name->setEnabled(false);
 	base->machine_author->setEnabled(false);
+
+	base->user_icon->setPixmap(SmallIcon("personal.png"));
+	base->group_icon->setPixmap(SmallIcon("kdmconfig.png"));
+	base->machine_icon->setPixmap(SmallIcon("system.png"));
 
 	connect(base->user_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->group_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
@@ -457,7 +462,9 @@ void LDAPConfig::groupHighlighted() {
 	base->group_memberList->clear();
 	for ( TQStringList::Iterator it = group.userlist.begin(); it != group.userlist.end(); ++it ) {
 		LDAPUserInfo user = findUserByDistinguishedName(*it);
-		(void)new TQListViewItem(base->group_memberList, user.name, user.commonName, TQString("%1").arg(user.uid));
+		if (user.name != "") {
+			(void)new TQListViewItem(base->group_memberList, user.name, user.commonName, TQString("%1").arg(user.uid));
+		}
 	}
 
 	processLockouts();

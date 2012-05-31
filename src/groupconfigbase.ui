@@ -38,6 +38,14 @@
 							<property name="name">
 								<cstring>detailsIcon</cstring>
 							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>1</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
 						</widget>
 						<widget class="TQLabel" row="0" column="1" colspan="1">
 							<property name="name">

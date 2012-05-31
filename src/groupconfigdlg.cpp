@@ -33,6 +33,7 @@
 #include <tqradiobutton.h>
 #include <tqcheckbox.h>
 #include <kdatetimewidget.h>
+#include <kiconloader.h>
 
 #include "ldapmgr.h"
 #include "groupconfigdlg.h"
@@ -48,6 +49,8 @@ GroupConfigDialog::GroupConfigDialog(LDAPGroupInfo group, LDAPConfig* parent, co
 	if (group.distinguishedName != "") {
 		m_base->groupName->setEnabled(false);
 	}
+
+	m_base->detailsIcon->setPixmap(SmallIcon("kdmconfig.png"));
 
 	connect(m_base->addToGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(addSelectedUserToGroup()));
 	connect(m_base->removeFromGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUserFromGroup()));

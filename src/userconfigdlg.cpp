@@ -34,6 +34,7 @@
 #include <tqcheckbox.h>
 #include <kdatetimewidget.h>
 #include <kpassdlg.h>
+#include <kiconloader.h>
 
 #include "ldapmgr.h"
 #include "userconfigdlg.h"
@@ -53,6 +54,13 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	}
 	m_base->lastChanged->setEnabled(false);
 
+	m_base->detailsIcon->setPixmap(SmallIcon("personal.png"));
+	m_base->enabledIcon->setPixmap(SmallIcon("decrypted.png"));
+	m_base->disabledIcon->setPixmap(SmallIcon("encrypted.png"));
+	m_base->userIcon->setPixmap(SmallIcon("personal.png"));
+	m_base->groupsIcon->setPixmap(SmallIcon("kdmconfig.png"));
+	m_base->passwordIcon->setPixmap(SmallIcon("password.png"));
+
 	connect(m_base->loginName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->realName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->surName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
@@ -62,9 +70,6 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	connect(m_base->requirePasswordAging, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->requirePasswordMinAge, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->primaryGroup, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(processLockouts()));
-
-	// Update fields
-// 	KPasswordEdit* passwordEntry;
 
 	if (m_user.status == KRB5_DISABLED_ACCOUNT) {
 		m_base->userStatusEnabled->setChecked(false);
@@ -95,7 +100,6 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 		item->setOn(group.userlist.contains(m_user.distinguishedName));
 	}
 
-// 	m_base->passwordEntry;
 	m_base->lastChanged->setText(m_user.password_last_changed.toString(TQt::TextDate));
 	if (m_user.password_expires) {
 		m_base->passwordExpireEnabled->setChecked(true);
@@ -116,6 +120,13 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	// User information
 	m_base->givenName->setText(m_user.givenName);
 	m_base->surName->setText(m_user.surName);
+	m_base->initials->setText(m_user.initials);
+	m_base->title->setText(m_user.title);
+	m_base->description->setText(m_user.description);
+	m_base->office->setText(m_user.deliveryOffice);
+	m_base->telephoneNumber->setText(m_user.telephoneNumber);
+	m_base->faxNumber->setText(m_user.faxNumber);
+	m_base->email->setText(m_user.email);
 
 	processLockouts();
 }
@@ -167,6 +178,13 @@ void UserConfigDialog::slotOk() {
 	// User information
 	m_user.givenName = m_base->givenName->text();
 	m_user.surName = m_base->surName->text();
+	m_user.initials = m_base->initials->text();
+	m_user.title = m_base->title->text();
+	m_user.description = m_base->description->text();
+	m_user.deliveryOffice = m_base->office->text();
+	m_user.telephoneNumber = m_base->telephoneNumber->text();
+	m_user.faxNumber = m_base->faxNumber->text();
+	m_user.email = m_base->email->text();
 
 	// Special handler for new group
 	if (m_user.distinguishedName == "") {
