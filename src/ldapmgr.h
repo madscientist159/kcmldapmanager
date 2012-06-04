@@ -53,9 +53,9 @@ class LDAPConfig: public KCModule
 	private slots:
 		void processLockouts();
 		void connectToRealm(const TQString&);
-		void populateUsers();
-		void populateGroups();
-		void populateMachines();
+		int populateUsers();
+		int populateGroups();
+		int populateMachines();
 		void updateUsersList();
 		void updateGroupsList();
 		void updateMachinesList();
@@ -70,6 +70,7 @@ class LDAPConfig: public KCModule
 		void removeSelectedGroup();
 		void removeSelectedMachine();
 		void updateAllInformation();
+		void abortConnection();
 
 	public:
 		LDAPUserInfo findUserInfoByName(TQString name);

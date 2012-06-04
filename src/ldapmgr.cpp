@@ -95,6 +95,8 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 	connect(base->machine_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(machineHighlighted()));
+	connect(base->user_list, TQT_SIGNAL(executed(TQListViewItem*)), this, TQT_SLOT(modifySelectedUser()));
+	connect(base->group_list, TQT_SIGNAL(executed(TQListViewItem*)), this, TQT_SLOT(modifySelectedGroup()));
 
 	connect(base->user_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewUser()));
 	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
@@ -127,6 +129,9 @@ void LDAPConfig::load() {
 	base->user_ldapRealm->clear();
 	base->group_ldapRealm->clear();
 	base->machine_ldapRealm->clear();
+	base->user_ldapRealm->insertItem("<none>");
+	base->group_ldapRealm->insertItem("<none>");
+	base->machine_ldapRealm->insertItem("<none>");
 	TQStringList cfgRealms = m_systemconfig->groupList();
 	for (TQStringList::Iterator it(cfgRealms.begin()); it != cfgRealms.end(); ++it) {
 		if ((*it).startsWith("LDAPRealm-")) {
@@ -203,40 +208,75 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 	base->group_ldapRealm->setCurrentItem(realm, false, -1);
 	base->machine_ldapRealm->setCurrentItem(realm, false, -1);
 
-	if (m_ldapmanager) {
-		if (m_ldapmanager->realm() == realm) {
-			return;
-		}
-		delete m_ldapmanager;
+	if (realm == "<none>") {
+		abortConnection();
 	}
+	else {
+		if (m_ldapmanager) {
+			if (m_ldapmanager->realm() == realm) {
+				return;
+			}
+			delete m_ldapmanager;
+		}
+	
+		m_systemconfig->setGroup("LDAPRealm-" + realm);
+		TQString host = m_systemconfig->readEntry("admin_server");
+		m_ldapmanager = new LDAPManager(realm, host);
+	
+		updateAllInformation();
+	}
+}
 
-	m_systemconfig->setGroup("LDAPRealm-" + realm);
-	TQString host = m_systemconfig->readEntry("admin_server");
-	m_ldapmanager = new LDAPManager(realm, host);
-
-	updateAllInformation();
+void LDAPConfig::abortConnection() {
+	if (m_ldapmanager) delete m_ldapmanager;
+	m_ldapmanager = 0;
+	base->user_list->clear();
+	base->group_list->clear();
+	base->machine_list->clear();
+	base->user_ldapRealm->setCurrentItem("<none>", false, -1);
+	base->group_ldapRealm->setCurrentItem("<none>", false, -1);
+	base->machine_ldapRealm->setCurrentItem("<none>", false, -1);
 }
 
 void LDAPConfig::updateAllInformation() {
-	populateUsers();
-	populateGroups();
-	populateMachines();
+	if (populateUsers() != 0) {
+		abortConnection();
+		return;
+	}
+	else {
+		if (populateGroups() != 0) {
+			abortConnection();
+			return;
+		}
+		else {
+			if (populateMachines() != 0) {
+				abortConnection();
+				return;
+			}
+		}
+	}
 
 	updateUsersList();
 	updateGroupsList();
 	updateMachinesList();
 }
 
-void LDAPConfig::populateUsers() {
-	m_userInfoList = m_ldapmanager->users();
+int LDAPConfig::populateUsers() {
+	int retcode;
+	m_userInfoList = m_ldapmanager->users(&retcode);
+	return retcode;
 }
 
-void LDAPConfig::populateGroups() {
-	m_groupInfoList = m_ldapmanager->groups();
+int LDAPConfig::populateGroups() {
+	int retcode;
+	m_groupInfoList = m_ldapmanager->groups(&retcode);
+	return retcode;
 }
 
-void LDAPConfig::populateMachines() {
-	m_machineInfoList = m_ldapmanager->machines();
+int LDAPConfig::populateMachines() {
+	int retcode;
+	m_machineInfoList = m_ldapmanager->machines(&retcode);
+	return retcode;
 }
 
 void LDAPConfig::updateUsersList() {
@@ -512,14 +552,6 @@ void LDAPConfig::addNewUser() {
 				user.distinguishedName = "uid=" + user.name + "," + m_ldapmanager->basedn();
 			}
 			if (m_ldapmanager->addUserInfo(user) == 0) {
-				if (user.new_password != "") {
-					// If a new password was set, use Kerberos to set it on the server
-					TQString errorString;
-					if (setPasswordForUser(user, &errorString) != 0) {
-						KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
-					}
-				}
-	
 				// Modify group(s) as needed
 				populateGroups();
 				LDAPGroupInfoList::Iterator it;
@@ -539,6 +571,15 @@ void LDAPConfig::addNewUser() {
 							m_ldapmanager->updateGroupInfo(group);
 						}
 					}
+				}
+
+				if (user.new_password != "") {
+					// If a new password was set, use Kerberos to set it on the server
+					TQString errorString;
+					if (setPasswordForUser(user, &errorString) != 0) {
+						KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
+					}
+					m_ldapmanager->unbind(true);	// Using kadmin on admin users/groups can disrupt our LDAP connection (likely due to the ACL rewrite)
 				}
 			}
 		}
@@ -601,14 +642,6 @@ void LDAPConfig::modifySelectedUser() {
 	if (userconfigdlg.exec() == TQDialog::Accepted) {
 		user = userconfigdlg.m_user;
 		if (m_ldapmanager->updateUserInfo(user) == 0) {
-			if (user.new_password != "") {
-				// If a new password was set, use Kerberos to set it on the server
-				TQString errorString;
-				if (setPasswordForUser(user, &errorString) != 0) {
-					KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
-				}
-			}
-
 			// Modify group(s) as needed
 			populateGroups();
 			LDAPGroupInfoList::Iterator it;
@@ -628,6 +661,15 @@ void LDAPConfig::modifySelectedUser() {
 						m_ldapmanager->updateGroupInfo(group);
 					}
 				}
+			}
+
+			if (user.new_password != "") {
+				// If a new password was set, use Kerberos to set it on the server
+				TQString errorString;
+				if (setPasswordForUser(user, &errorString) != 0) {
+					KMessageBox::error(0, i18n("<qt>Unable to set password for user!<p>%1</qt>").arg(errorString), i18n("Kerberos Failure"));
+				}
+				m_ldapmanager->unbind(true);	// Using kadmin on admin users/groups can disrupt our LDAP connection (likely due to the ACL rewrite)
 			}
 		}
 	}
