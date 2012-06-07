@@ -168,8 +168,9 @@ void LDAPConfig::save() {
 void LDAPConfig::processLockouts() {
 	TQListViewItem* lvi = base->user_list->selectedItem();
 	if (lvi) {
+		LDAPUserInfo user = selectedUser();
 		base->user_buttonModify->setEnabled(true);
-		base->user_buttonDelete->setEnabled(true);
+		base->user_buttonDelete->setEnabled(!user.tde_builtin_account);
 	}
 	else {
 		base->user_buttonModify->setEnabled(false);
@@ -179,8 +180,9 @@ void LDAPConfig::processLockouts() {
 
 	lvi = base->group_list->selectedItem();
 	if (lvi) {
+		LDAPGroupInfo group = selectedGroup();
 		base->group_buttonModify->setEnabled(true);
-		base->group_buttonDelete->setEnabled(true);
+		base->group_buttonDelete->setEnabled(!group.tde_builtin_account);
 	}
 	else {
 		base->group_buttonModify->setEnabled(false);
@@ -190,7 +192,8 @@ void LDAPConfig::processLockouts() {
 
 	lvi = base->machine_list->selectedItem();
 	if (lvi) {
-		base->machine_buttonDelete->setEnabled(true);
+		LDAPMachineInfo machine = selectedMachine();
+		base->machine_buttonDelete->setEnabled(!machine.tde_builtin_account);
 	}
 	else {
 		base->machine_buttonDelete->setEnabled(false);
@@ -198,6 +201,7 @@ void LDAPConfig::processLockouts() {
 	// FIXME
 	// Disable machine add/modify as they are not implemented
 	// In fact, I don't know if I CAN implement them!
+	// Think about it...yes you can add the 'add' feature...kadmin 'ank --random-key host/HOSTNAME.FQDN'...
 	base->machine_buttonAdd->setEnabled(false);
 	base->machine_buttonModify->setEnabled(false);
 }
@@ -734,74 +738,7 @@ int LDAPConfig::setPasswordForUser(LDAPUserInfo user, TQString *errstr) {
 		return 0;
 	}
 
-	LDAPCredentials admincreds = m_ldapmanager->currentLDAPCredentials();
-
-	TQCString command = "kadmin";
-	QCStringList args;
-	args << TQCString("-p") << TQCString(admincreds.username.lower()+"@"+(admincreds.realm.upper())) << TQCString("-r") << TQCString(admincreds.realm.upper());
-
-	TQString prompt;
-	PtyProcess kadminProc;
-	kadminProc.exec(command, args);
-	prompt = kadminProc.readLine(true);
-	prompt = prompt.stripWhiteSpace();
-	if (prompt == "kadmin>") {
-		kadminProc.writeLine(TQCString("passwd "+user.name), true);
-		prompt = kadminProc.readLine(true);	// Discard our own input
-		prompt = readFullLineFromPtyProcess(&kadminProc);
-		prompt = prompt.stripWhiteSpace();
-		if ((prompt.endsWith(" Password:")) && (!prompt.startsWith(TQString(user.name + "@")))) {
-			kadminProc.writeLine(admincreds.password, true);
-			prompt = kadminProc.readLine(true);	// Discard our own input
-			prompt = kadminProc.readLine(true);
-			prompt = prompt.stripWhiteSpace();
-		}
-		if (prompt.contains("authentication failed")) {
-			if (errstr) *errstr = prompt;
-			kadminProc.writeLine("quit", true);
-			return 1;
-		}
-		else if ((prompt.endsWith(" Password:")) && (prompt.startsWith(TQString(user.name + "@")))) {
-			kadminProc.writeLine(user.new_password, true);
-			prompt = kadminProc.readLine(true);	// Discard our own input
-			prompt = kadminProc.readLine(true);
-			prompt = prompt.stripWhiteSpace();
-			if ((prompt.endsWith(" Password:")) && (prompt.startsWith("Verify"))) {
-				kadminProc.writeLine(user.new_password, true);
-				prompt = kadminProc.readLine(true);	// Discard our own input
-				prompt = kadminProc.readLine(true);
-				prompt = prompt.stripWhiteSpace();
-			}
-			if ((prompt.endsWith(" Password:")) && (!prompt.startsWith(TQString(user.name + "@")))) {
-				kadminProc.writeLine(admincreds.password, true);
-				prompt = kadminProc.readLine(true);	// Discard our own input
-				prompt = kadminProc.readLine(true);
-				prompt = prompt.stripWhiteSpace();
-			}
-			if (prompt != "kadmin>") {
-				if (errstr) *errstr = prompt;
-				kadminProc.writeLine("quit", true);
-				return 1;
-			}
-
-			// Success!
-			kadminProc.writeLine("quit", true);
-			return 0;
-		}
-		else if (prompt == "kadmin>") {
-			// Success!
-			kadminProc.writeLine("quit", true);
-			return 0;
-		}
-
-		// Failure
-		if (errstr) *errstr = prompt;
-		kadminProc.writeLine("quit", true);
-		return 1;
-	}
-
-	if (errstr) *errstr = "Internal error.  Verify that kadmin exists and can be executed.";
-	return 1;	// Failure
+	return m_ldapmanager->setPasswordForUser(user, errstr);
 }
 
 int LDAPConfig::buttons() {
