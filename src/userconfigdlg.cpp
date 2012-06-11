@@ -133,7 +133,6 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 
 void UserConfigDialog::slotOk() {
 	// Update data
-	// RAJA FIXME
 	if (m_base->userStatusEnabled->isOn() == true) {
 		m_user.status = KRB5_ACTIVE_DEFAULT;
 	}
