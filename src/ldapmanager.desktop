@@ -4,14 +4,14 @@ Exec=kcmshell ldapmanager
 Icon=tdmconfig
 Type=Application
 
-X-KDE-ModuleType=Library
-X-KDE-Library=ldapmanager
-X-KDE-HasReadOnlyMode=false
-X-KDE-ParentApp=kcontrol
+X-TDE-ModuleType=Library
+X-TDE-Library=ldapmanager
+X-TDE-HasReadOnlyMode=false
+X-TDE-ParentApp=kcontrol
 
 [Desktop Entry]
 Encoding=UTF-8
 Comment=A KControl tool for managing users, groups, and machines in LDAP realms
 Keywords=ldap manager
 Name=LDAP Realm Manager
-Categories=Qt;KDE;X-KDE-settings-components;
+Categories=Qt;TDE;X-TDE-settings-components;
