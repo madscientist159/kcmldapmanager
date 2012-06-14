@@ -56,19 +56,24 @@ class LDAPConfig: public KCModule
 		int populateUsers();
 		int populateGroups();
 		int populateMachines();
+		int populateServices();
 		void updateUsersList();
 		void updateGroupsList();
 		void updateMachinesList();
+		void updateServicesList();
 		void userHighlighted();
 		void groupHighlighted();
 		void machineHighlighted();
+		void serviceHighlighted();
 		void addNewUser();
 		void addNewGroup();
+		void addNewService();
 		void modifySelectedUser();
 		void modifySelectedGroup();
 		void removeSelectedUser();
 		void removeSelectedGroup();
 		void removeSelectedMachine();
+		void removeSelectedService();
 		void updateAllInformation();
 		void abortConnection();
 
@@ -76,6 +81,7 @@ class LDAPConfig: public KCModule
 		LDAPUserInfo findUserInfoByName(TQString name);
 		LDAPGroupInfo findGroupInfoByName(TQString name);
 		LDAPMachineInfo findMachineInfoByName(TQString name);
+		LDAPServiceInfo findServiceInfoByName(TQString name, TQString machine);
 		LDAPUserInfo findUserInfoByNameAndUID(TQString name, TQString uid);
 		LDAPGroupInfo findGroupInfoByNameAndGID(TQString name, TQString gid);
 		LDAPGroupInfo findGroupInfoByGID(TQString gid);
@@ -83,11 +89,13 @@ class LDAPConfig: public KCModule
 		LDAPGroupInfoList findGroupsForUserByDistinguishedName(TQString dn);
 		LDAPUserInfoList userList();
 		LDAPGroupInfoList groupList();
+		LDAPMachineInfoList machineList();
 
 	private:
 		LDAPUserInfo selectedUser();
 		LDAPGroupInfo selectedGroup();
 		LDAPMachineInfo selectedMachine();
+		LDAPServiceInfo selectedService();
 		int setPasswordForUser(LDAPUserInfo user, TQString *errstr);
 
 	private:
@@ -100,6 +108,7 @@ class LDAPConfig: public KCModule
 		LDAPUserInfoList m_userInfoList;
 		LDAPGroupInfoList m_groupInfoList;
 		LDAPMachineInfoList m_machineInfoList;
+		LDAPServiceInfoList m_serviceInfoList;
 };
 
 #endif

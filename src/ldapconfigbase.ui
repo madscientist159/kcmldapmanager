@@ -672,6 +672,198 @@
 					</widget>
 				</grid>
 			</widget>
+			<widget class="TQWidget">
+				<property name="name">
+					<cstring>servicesTab</cstring>
+				</property>
+				<attribute name="title">
+					<string>Services</string>
+				</attribute>
+				<grid>
+					<property name="name">
+						<cstring>unnamed</cstring>
+					</property>
+					<widget class="TQLabel" row="0" column="0" colspan="0">
+						<property name="name">
+							<cstring>service_icon</cstring>
+						</property>
+					</widget>
+					<widget class="TQLabel" row="0" column="1" colspan="0">
+						<property name="name">
+							<cstring>unnamed</cstring>
+						</property>
+						<property name="text">
+							<string>Services in LDAP Realm</string>
+						</property>
+					</widget>
+					<widget class="KComboBox" row="0" column="3" colspan="0">
+						<property name="name">
+							<cstring>service_ldapRealm</cstring>
+						</property>
+					</widget>
+					<spacer row="0" column="2">
+						<property name="name" stdset="0">
+							<cstring>Spacer3</cstring>
+						</property>
+						<property name="orientation">
+							<enum>Horizontal</enum>
+						</property>
+						<property name="sizeType">
+							<enum>Expanding</enum>
+						</property>
+						<property name="sizeHint">
+							<size>
+								<width>20</width>
+								<height>20</height>
+							</size>
+						</property>
+					</spacer>
+					<widget class="TQSplitter" row="1" column="0" colspan="4">
+						<property name="name">
+							<cstring>splitter1</cstring>
+						</property>
+						<property name="orientation">
+							<enum>Vertical</enum>
+						</property>
+						<widget class="KListView" row="1" column="0" colspan="4">
+							<column>
+								<property name="text">
+									<string>Service Name</string>
+								</property>
+								<property name="clickable">
+									<bool>true</bool>
+								</property>
+								<property name="resizeable">
+									<bool>true</bool>
+								</property>
+							</column>
+							<column>
+								<property name="text">
+									<string>Machine Name</string>
+								</property>
+								<property name="clickable">
+									<bool>true</bool>
+								</property>
+								<property name="resizeable">
+									<bool>true</bool>
+								</property>
+							</column>
+							<property name="name">
+								<cstring>service_list</cstring>
+							</property>
+							<property name="rootIsDecorated">
+								<bool>false</bool>
+							</property>
+						</widget>
+						<widget class="TQLayoutWidget" row="2" column="0" colspan="4">
+							<property name="name">
+								<cstring>unnamed_layoutwidget3</cstring>
+							</property>
+							<grid>
+								<property name="margin">
+									<number>0</number>
+								</property>
+								<widget class="TQLayoutWidget" row="0" column="0">
+									<property name="name">
+										<cstring>serviceControls</cstring>
+									</property>
+									<grid>
+										<property name="name">
+											<cstring>unnamed</cstring>
+										</property>
+										<widget class="TQPushButton" row="0" column="1" colspan="0">
+											<property name="name">
+												<cstring>service_buttonModify</cstring>
+											</property>
+											<property name="text">
+												<string>Modify</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="0" colspan="0">
+											<property name="name">
+												<cstring>service_buttonAdd</cstring>
+											</property>
+											<property name="text">
+												<string>New</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="2" colspan="0">
+											<property name="name">
+												<cstring>service_buttonDelete</cstring>
+											</property>
+											<property name="text">
+												<string>Delete</string>
+											</property>
+										</widget>
+									</grid>
+								</widget>
+								<widget class="TQGroupBox" row="1" column="0">
+									<property name="name">
+										<cstring>groupServiceDetails</cstring>
+									</property>
+									<property name="title">
+										<string>Details</string>
+									</property>
+									<grid>
+										<property name="name">
+											<cstring>unnamed</cstring>
+										</property>
+										<widget class="TQLabel" row="0" column="0" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Service Name:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="0" column="1" colspan="0">
+											<property name="name">
+												<cstring>service_name</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+										<widget class="TQLabel" row="0" column="2" colspan="0">
+											<property name="name">
+												<cstring>unnamed</cstring>
+											</property>
+											<property name="text">
+												<string>Author:</string>
+											</property>
+										</widget>
+										<widget class="KLineEdit" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>service_author</cstring>
+											</property>
+											<property name="enabled">
+												<cstring>false</cstring>
+											</property>
+										</widget>
+									</grid>
+								</widget>
+								<spacer row="4" column="0">
+									<property name="name" stdset="0">
+										<cstring>Spacer6</cstring>
+									</property>
+									<property name="orientation">
+										<enum>Vertical</enum>
+									</property>
+									<property name="sizeType">
+										<enum>Expanding</enum>
+									</property>
+									<property name="sizeHint">
+										<size>
+											<width>20</width>
+											<height>20</height>
+										</size>
+									</property>
+								</spacer>
+							</grid>
+						</widget>
+					</widget>
+				</grid>
+			</widget>
 		</widget>
 	</grid>
 </widget>

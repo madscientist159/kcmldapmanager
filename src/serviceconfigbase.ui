@@ -1,0 +1,89 @@
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+	<class>LDAPServiceConfigBase</class>
+	<widget class="TQWidget">
+		<property name="name">
+			<cstring>LDAPServiceConfigBase</cstring>
+		</property>
+		<property name="geometry">
+			<rect>
+				<x>0</x>
+				<y>0</y>
+				<width>519</width>
+				<height>356</height>
+			</rect>
+		</property>
+		<grid>
+			<property name="name">
+				<cstring>unnamed</cstring>
+			</property>
+			<widget class="TQTabWidget" row="0" column="0">
+				<property name="name">
+					<cstring>TabWidget2</cstring>
+				</property>
+				<property name="enabled">
+					<bool>true</bool>
+				</property>
+				<widget class="TQWidget">
+					<property name="name">
+						<cstring>detailsTab</cstring>
+					</property>
+					<attribute name="title">
+						<string>Kerberos Service</string>
+					</attribute>
+					<grid>
+						<property name="name">
+							<cstring>unnamed</cstring>
+						</property>
+						<widget class="TQLabel" row="0" column="0" colspan="1">
+							<property name="name">
+								<cstring>detailsIcon</cstring>
+							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>1</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="0" column="1" colspan="1">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Service Name</string>
+							</property>
+						</widget>
+						<widget class="KLineEdit" row="0" column="2" colspan="1">
+							<property name="name">
+								<cstring>serviceName</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="1" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Host Machine</string>
+							</property>
+						</widget>
+						<widget class="KComboBox" row="1" column="2" colspan="2">
+							<property name="name">
+								<cstring>hostMachine</cstring>
+							</property>
+						</widget>
+					</grid>
+				</widget>
+			</widget>
+		</grid>
+	</widget>
+	<includes>
+		<include location="local" impldecl="in implementation">LDAPServiceConfigBase.ui.h</include>
+	</includes>
+	<includes>
+		<include location="local" impldecl="in implementation">kdialog.h</include>
+	</includes>
+	<layoutdefaults spacing="3" margin="6"/>
+	<layoutfunctions spacing="KDialog::spacingHint" margin="KDialog::marginHint"/>
+</UI>

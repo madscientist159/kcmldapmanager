@@ -48,6 +48,7 @@
 #include "ldappasswddlg.h"
 #include "userconfigdlg.h"
 #include "groupconfigdlg.h"
+#include "serviceconfigdlg.h"
 
 // FIXME
 // Connect this to CMake/Automake
@@ -74,6 +75,8 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	base->group_memberList->setFullWidth(true);
 	base->machine_list->setAllColumnsShowFocus(true);
 	base->machine_list->setFullWidth(true);
+	base->service_list->setAllColumnsShowFocus(true);
+	base->service_list->setFullWidth(true);
 
 	base->user_loginName->setEnabled(false);
 	base->user_uid->setEnabled(false);
@@ -84,27 +87,34 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 
 	base->machine_name->setEnabled(false);
 	base->machine_author->setEnabled(false);
+	base->service_name->setEnabled(false);
+	base->service_author->setEnabled(false);
 
 	base->user_icon->setPixmap(SmallIcon("personal.png"));
 	base->group_icon->setPixmap(SmallIcon("kdmconfig.png"));
 	base->machine_icon->setPixmap(SmallIcon("system.png"));
+	base->service_icon->setPixmap(SmallIcon("kcmsystem.png"));
 
 	connect(base->user_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->group_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->machine_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
+	connect(base->service_ldapRealm, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(connectToRealm(const TQString&)));
 	connect(base->user_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(userHighlighted()));
 	connect(base->group_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(groupHighlighted()));
 	connect(base->machine_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(machineHighlighted()));
+	connect(base->service_list, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(serviceHighlighted()));
 	connect(base->user_list, TQT_SIGNAL(executed(TQListViewItem*)), this, TQT_SLOT(modifySelectedUser()));
 	connect(base->group_list, TQT_SIGNAL(executed(TQListViewItem*)), this, TQT_SLOT(modifySelectedGroup()));
 
 	connect(base->user_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewUser()));
 	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
+	connect(base->service_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewService()));
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
 	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
 	connect(base->user_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUser()));
 	connect(base->group_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedGroup()));
 	connect(base->machine_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedMachine()));
+	connect(base->service_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedService()));
 	
 	load();
 	
@@ -129,9 +139,11 @@ void LDAPConfig::load() {
 	base->user_ldapRealm->clear();
 	base->group_ldapRealm->clear();
 	base->machine_ldapRealm->clear();
+	base->service_ldapRealm->clear();
 	base->user_ldapRealm->insertItem("<none>");
 	base->group_ldapRealm->insertItem("<none>");
 	base->machine_ldapRealm->insertItem("<none>");
+	base->service_ldapRealm->insertItem("<none>");
 	TQStringList cfgRealms = m_systemconfig->groupList();
 	for (TQStringList::Iterator it(cfgRealms.begin()); it != cfgRealms.end(); ++it) {
 		if ((*it).startsWith("LDAPRealm-")) {
@@ -141,6 +153,7 @@ void LDAPConfig::load() {
 			base->user_ldapRealm->insertItem(realmName);
 			base->group_ldapRealm->insertItem(realmName);
 			base->machine_ldapRealm->insertItem(realmName);
+			base->service_ldapRealm->insertItem(realmName);
 		}
 	}
 	TQString defaultRealm = m_systemconfig->readEntry("DefaultRealm", TQString::null);
@@ -150,6 +163,7 @@ void LDAPConfig::load() {
 				base->user_ldapRealm->setCurrentItem(i);
 				base->group_ldapRealm->setCurrentItem(i);
 				base->machine_ldapRealm->setCurrentItem(i);
+				base->service_ldapRealm->setCurrentItem(i);
 				break;
 			}
 		}
@@ -204,6 +218,19 @@ void LDAPConfig::processLockouts() {
 	// Think about it...yes you can add the 'add' feature...kadmin 'ank --random-key host/HOSTNAME.FQDN'...
 	base->machine_buttonAdd->setEnabled(false);
 	base->machine_buttonModify->setEnabled(false);
+
+	lvi = base->service_list->selectedItem();
+	if (lvi) {
+		LDAPServiceInfo service = selectedService();
+		base->service_buttonDelete->setEnabled(!service.tde_builtin_account);
+	}
+	else {
+		base->service_buttonDelete->setEnabled(false);
+	}
+	base->service_buttonAdd->setEnabled(true);
+	// FIXME
+	// Disable service modify as it is not implemented
+	base->service_buttonModify->setEnabled(false);
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
@@ -211,6 +238,7 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 	base->user_ldapRealm->setCurrentItem(realm, false, -1);
 	base->group_ldapRealm->setCurrentItem(realm, false, -1);
 	base->machine_ldapRealm->setCurrentItem(realm, false, -1);
+	base->service_ldapRealm->setCurrentItem(realm, false, -1);
 
 	if (realm == "<none>") {
 		abortConnection();
@@ -237,9 +265,11 @@ void LDAPConfig::abortConnection() {
 	base->user_list->clear();
 	base->group_list->clear();
 	base->machine_list->clear();
+	base->service_list->clear();
 	base->user_ldapRealm->setCurrentItem("<none>", false, -1);
 	base->group_ldapRealm->setCurrentItem("<none>", false, -1);
 	base->machine_ldapRealm->setCurrentItem("<none>", false, -1);
+	base->service_ldapRealm->setCurrentItem("<none>", false, -1);
 }
 
 void LDAPConfig::updateAllInformation() {
@@ -257,12 +287,19 @@ void LDAPConfig::updateAllInformation() {
 				abortConnection();
 				return;
 			}
+			else {
+				if (populateServices() != 0) {
+					abortConnection();
+					return;
+				}
+			}
 		}
 	}
 
 	updateUsersList();
 	updateGroupsList();
 	updateMachinesList();
+	updateServicesList();
 }
 
 int LDAPConfig::populateUsers() {
@@ -280,6 +317,12 @@ int LDAPConfig::populateGroups() {
 int LDAPConfig::populateMachines() {
 	int retcode;
 	m_machineInfoList = m_ldapmanager->machines(&retcode);
+	return retcode;
+}
+
+int LDAPConfig::populateServices() {
+	int retcode;
+	m_serviceInfoList = m_ldapmanager->services(&retcode);
 	return retcode;
 }
 
@@ -347,6 +390,27 @@ void LDAPConfig::updateMachinesList() {
 	processLockouts();
 }
 
+void LDAPConfig::updateServicesList() {
+	TQListViewItem* itm = base->service_list->selectedItem();
+	TQString prevSelectedItemText;
+	if (itm) {
+		prevSelectedItemText = itm->text(0);
+	}
+
+	base->service_list->clear();
+	LDAPServiceInfoList::Iterator it;
+	for (it = m_serviceInfoList.begin(); it != m_serviceInfoList.end(); ++it) {
+		LDAPServiceInfo service = *it;
+		itm = new TQListViewItem(base->service_list, service.name, service.machine);
+		if (prevSelectedItemText != "") {
+			if (service.name == prevSelectedItemText) {
+				base->service_list->setSelected(itm, true);
+			}
+		}
+	}
+	processLockouts();
+}
+
 LDAPUserInfo LDAPConfig::findUserInfoByName(TQString name) {
 	// Figure out which user is selected
 	LDAPUserInfoList::Iterator it;
@@ -381,6 +445,18 @@ LDAPMachineInfo LDAPConfig::findMachineInfoByName(TQString name) {
 		}
 	}
 	return LDAPMachineInfo();
+}
+
+LDAPServiceInfo LDAPConfig::findServiceInfoByName(TQString name, TQString machine) {
+	// Figure out which service is selected
+	LDAPServiceInfoList::Iterator it;
+	for (it = m_serviceInfoList.begin(); it != m_serviceInfoList.end(); ++it) {
+		LDAPServiceInfo service = *it;
+		if ((service.name == name) && (service.machine == machine)) {
+			return service;
+		}
+	}
+	return LDAPServiceInfo();
 }
 
 LDAPUserInfo LDAPConfig::findUserInfoByNameAndUID(TQString name, TQString uid) {
@@ -443,6 +519,14 @@ LDAPMachineInfo LDAPConfig::selectedMachine() {
 	return findMachineInfoByName(lvi->text(0));
 }
 
+LDAPServiceInfo LDAPConfig::selectedService() {
+	TQListViewItem* lvi = base->service_list->selectedItem();
+	if (!lvi) {
+		return LDAPServiceInfo();
+	}
+	return findServiceInfoByName(lvi->text(0), lvi->text(1));
+}
+
 LDAPUserInfo LDAPConfig::findUserByDistinguishedName(TQString dn) {
 	LDAPUserInfoList::Iterator it;
 	for (it = m_userInfoList.begin(); it != m_userInfoList.end(); ++it) {
@@ -474,6 +558,10 @@ LDAPUserInfoList LDAPConfig::userList() {
 
 LDAPGroupInfoList LDAPConfig::groupList() {
 	return m_groupInfoList;
+}
+
+LDAPMachineInfoList LDAPConfig::machineList() {
+	return m_machineInfoList;
 }
 
 void LDAPConfig::userHighlighted() {
@@ -520,6 +608,16 @@ void LDAPConfig::machineHighlighted() {
 
 	base->machine_name->setText(machine.name);
 	base->machine_author->setText(findUserByDistinguishedName(machine.creatorsName).name);
+
+	processLockouts();
+}
+
+void LDAPConfig::serviceHighlighted() {
+	// Show information in the quick view area
+	LDAPServiceInfo service = selectedService();
+
+	base->service_name->setText(service.name);
+	base->service_author->setText(findUserByDistinguishedName(service.creatorsName).name);
 
 	processLockouts();
 }
@@ -636,6 +734,21 @@ void LDAPConfig::addNewGroup() {
 	updateAllInformation();
 }
 
+void LDAPConfig::addNewService() {
+	// Launch a dialog to add the service
+	LDAPServiceInfo service;
+
+	ServiceConfigDialog serviceconfigdlg(service, this);
+	if (serviceconfigdlg.exec() == TQDialog::Accepted) {
+		service = serviceconfigdlg.m_service;
+		TQString errorstring;
+		if (m_ldapmanager->addServiceInfo(service, &errorstring) != 0) {
+			KMessageBox::error(0, i18n("<qt>Unable to add new service!<p>%1</qt>").arg(errorstring), i18n("Internal Failure"));
+		}
+	}
+	updateAllInformation();
+}
+
 void LDAPConfig::modifySelectedUser() {
 	// Launch a dialog to edit the user
 	LDAPUserInfo user = selectedUser();
@@ -719,6 +832,16 @@ void LDAPConfig::removeSelectedMachine() {
 
 	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the machine %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(machine.name), i18n("Confirmation Required")) == KMessageBox::Yes) {
 		m_ldapmanager->deleteMachineInfo(machine);
+	}
+
+	updateAllInformation();
+}
+
+void LDAPConfig::removeSelectedService() {
+	LDAPServiceInfo service = selectedService();
+
+	if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to delete the service %1 for host %2</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(service.name).arg(service.machine), i18n("Confirmation Required")) == KMessageBox::Yes) {
+		m_ldapmanager->deleteServiceInfo(service);
 	}
 
 	updateAllInformation();
