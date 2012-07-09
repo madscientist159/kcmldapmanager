@@ -847,15 +847,6 @@ void LDAPConfig::removeSelectedService() {
 	updateAllInformation();
 }
 
-TQString readFullLineFromPtyProcess(PtyProcess* proc) {
-	TQString result = "";
-	while ((!result.contains("\n")) && (!result.contains(":")) && (!result.contains(">"))) {
-		result = result + TQString(proc->readLine(false));
-		tqApp->processEvents();
-	}
-	return result;
-}
-
 int LDAPConfig::setPasswordForUser(LDAPUserInfo user, TQString *errstr) {
 	if (user.new_password == "") {
 		return 0;
