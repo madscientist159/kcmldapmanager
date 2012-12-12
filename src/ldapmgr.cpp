@@ -168,7 +168,21 @@ void LDAPConfig::load() {
 			}
 		}
 	}
-	connectToRealm(base->user_ldapRealm->currentText().upper());
+	else {
+		// Try hard not to select the "<none>" realm
+		for (i=0; i<base->user_ldapRealm->count(); i++) {
+			if (base->user_ldapRealm->text(i).lower() != "<none>") {
+				base->user_ldapRealm->setCurrentItem(i);
+				base->group_ldapRealm->setCurrentItem(i);
+				base->machine_ldapRealm->setCurrentItem(i);
+				base->service_ldapRealm->setCurrentItem(i);
+				break;
+			}
+		}
+	}
+	if (base->user_ldapRealm->currentText().lower() != "<none>") {
+		connectToRealm(base->user_ldapRealm->currentText().upper());
+	}
 }
 
 void LDAPConfig::defaults() {
