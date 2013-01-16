@@ -157,6 +157,14 @@
 												<string>Delete</string>
 											</property>
 										</widget>
+										<widget class="TQPushButton" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>user_buttonRefresh</cstring>
+											</property>
+											<property name="text">
+												<string>Refresh</string>
+											</property>
+										</widget>
 									</grid>
 								</widget>
 								<widget class="TQGroupBox" row="1" column="0">
@@ -413,6 +421,14 @@
 												<string>Delete</string>
 											</property>
 										</widget>
+										<widget class="TQPushButton" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>group_buttonRefresh</cstring>
+											</property>
+											<property name="text">
+												<string>Refresh</string>
+											</property>
+										</widget>
 										<widget class="TQGroupBox" row="1" column="0" colspan="3">
 											<property name="name">
 												<cstring>groupGroupDetails</cstring>
@@ -601,6 +617,14 @@
 											</property>
 											<property name="text">
 												<string>Delete</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>machine_buttonRefresh</cstring>
+											</property>
+											<property name="text">
+												<string>Refresh</string>
 											</property>
 										</widget>
 									</grid>
@@ -793,6 +817,14 @@
 											</property>
 											<property name="text">
 												<string>Delete</string>
+											</property>
+										</widget>
+										<widget class="TQPushButton" row="0" column="3" colspan="0">
+											<property name="name">
+												<cstring>service_buttonRefresh</cstring>
+											</property>
+											<property name="text">
+												<string>Refresh</string>
 											</property>
 										</widget>
 									</grid>

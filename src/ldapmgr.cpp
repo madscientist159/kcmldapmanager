@@ -115,6 +115,11 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	connect(base->group_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedGroup()));
 	connect(base->machine_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedMachine()));
 	connect(base->service_buttonDelete, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedService()));
+
+	connect(base->user_buttonRefresh, TQT_SIGNAL(clicked()), this, TQT_SLOT(updateAllInformation()));
+	connect(base->group_buttonRefresh, TQT_SIGNAL(clicked()), this, TQT_SLOT(updateAllInformation()));
+	connect(base->machine_buttonRefresh, TQT_SIGNAL(clicked()), this, TQT_SLOT(updateAllInformation()));
+	connect(base->service_buttonRefresh, TQT_SIGNAL(clicked()), this, TQT_SLOT(updateAllInformation()));
 	
 	load();
 	
@@ -194,29 +199,33 @@ void LDAPConfig::save() {
 }
 
 void LDAPConfig::processLockouts() {
+	bool connected = (!(!m_ldapmanager));
+
 	TQListViewItem* lvi = base->user_list->selectedItem();
 	if (lvi) {
 		LDAPUserInfo user = selectedUser();
-		base->user_buttonModify->setEnabled(true);
+		base->user_buttonModify->setEnabled(connected);
 		base->user_buttonDelete->setEnabled(!user.tde_builtin_account);
 	}
 	else {
 		base->user_buttonModify->setEnabled(false);
 		base->user_buttonDelete->setEnabled(false);
 	}
-	base->user_buttonAdd->setEnabled(true);
+	base->user_buttonAdd->setEnabled(connected);
+	base->user_buttonRefresh->setEnabled(connected);
 
 	lvi = base->group_list->selectedItem();
 	if (lvi) {
 		LDAPGroupInfo group = selectedGroup();
-		base->group_buttonModify->setEnabled(true);
+		base->group_buttonModify->setEnabled(connected);
 		base->group_buttonDelete->setEnabled(!group.tde_builtin_account);
 	}
 	else {
 		base->group_buttonModify->setEnabled(false);
 		base->group_buttonDelete->setEnabled(false);
 	}
-	base->group_buttonAdd->setEnabled(true);
+	base->group_buttonAdd->setEnabled(connected);
+	base->group_buttonRefresh->setEnabled(connected);
 
 	lvi = base->machine_list->selectedItem();
 	if (lvi) {
@@ -232,6 +241,7 @@ void LDAPConfig::processLockouts() {
 	// Think about it...yes you can add the 'add' feature...kadmin 'ank --random-key host/HOSTNAME.FQDN'...
 	base->machine_buttonAdd->setEnabled(false);
 	base->machine_buttonModify->setEnabled(false);
+	base->machine_buttonRefresh->setEnabled(connected);
 
 	lvi = base->service_list->selectedItem();
 	if (lvi) {
@@ -241,10 +251,11 @@ void LDAPConfig::processLockouts() {
 	else {
 		base->service_buttonDelete->setEnabled(false);
 	}
-	base->service_buttonAdd->setEnabled(true);
+	base->service_buttonAdd->setEnabled(connected);
 	// FIXME
 	// Disable service modify as it is not implemented
 	base->service_buttonModify->setEnabled(false);
+	base->service_buttonRefresh->setEnabled(connected);
 }
 
 void LDAPConfig::connectToRealm(const TQString& realm) {
@@ -271,6 +282,8 @@ void LDAPConfig::connectToRealm(const TQString& realm) {
 	
 		updateAllInformation();
 	}
+
+	processLockouts();
 }
 
 void LDAPConfig::abortConnection() {
@@ -317,24 +330,40 @@ void LDAPConfig::updateAllInformation() {
 }
 
 int LDAPConfig::populateUsers() {
+	if (!m_ldapmanager) {
+		return -1;
+	}
+
 	int retcode;
 	m_userInfoList = m_ldapmanager->users(&retcode);
 	return retcode;
 }
 
 int LDAPConfig::populateGroups() {
+	if (!m_ldapmanager) {
+		return -1;
+	}
+
 	int retcode;
 	m_groupInfoList = m_ldapmanager->groups(&retcode);
 	return retcode;
 }
 
 int LDAPConfig::populateMachines() {
+	if (!m_ldapmanager) {
+		return -1;
+	}
+
 	int retcode;
 	m_machineInfoList = m_ldapmanager->machines(&retcode);
 	return retcode;
 }
 
 int LDAPConfig::populateServices() {
+	if (!m_ldapmanager) {
+		return -1;
+	}
+
 	int retcode;
 	m_serviceInfoList = m_ldapmanager->services(&retcode);
 	return retcode;
