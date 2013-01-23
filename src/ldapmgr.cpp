@@ -123,9 +123,9 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	
 	load();
 	
-	KAboutData* about = new KAboutData("ldapmanager", I18N_NOOP("TDE LDAP Realm Manager"), "0.1",
+	TDEAboutData* about = new TDEAboutData("ldapmanager", I18N_NOOP("TDE LDAP Realm Manager"), "0.1",
 		I18N_NOOP("TDE LDAP Realm Manager Control Panel Module"),
-		KAboutData::License_GPL,
+		TDEAboutData::License_GPL,
 		I18N_NOOP("(c) 2012 Timothy Pearson"), 0, 0);
 	
 	about->addAuthor("Timothy Pearson", 0, "kb9vqf@pearsoncomputing.net");

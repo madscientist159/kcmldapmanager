@@ -48,7 +48,7 @@ class LDAPConfig: public KCModule
 		virtual void defaults();
 		virtual int buttons();
 		virtual TQString quickHelp() const;
-		virtual const KAboutData *aboutData() const { return myAboutData; };
+		virtual const TDEAboutData *aboutData() const { return myAboutData; };
 
 	private slots:
 		void processLockouts();
@@ -99,7 +99,7 @@ class LDAPConfig: public KCModule
 		int setPasswordForUser(LDAPUserInfo user, TQString *errstr);
 
 	private:
-		KAboutData *myAboutData;
+		TDEAboutData *myAboutData;
 
 		LDAPConfigBase *base;
 		KSimpleConfig *m_systemconfig;
