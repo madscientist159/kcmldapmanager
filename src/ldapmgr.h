@@ -21,7 +21,7 @@
 #ifndef _LDAPMGR_H_
 #define _LDAPMGR_H_
 
-#include <kcmodule.h>
+#include <tdecmodule.h>
 #include <kaboutdata.h>
 #include <kpushbutton.h>
 #include <klistview.h>
