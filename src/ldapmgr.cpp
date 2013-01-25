@@ -59,7 +59,7 @@ typedef KGenericFactory<LDAPConfig, TQWidget> LDAPConfigFactory;
 K_EXPORT_COMPONENT_FACTORY( kcm_ldapmanager, LDAPConfigFactory("kcmldapmanager"))
 
 LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
-    : KCModule(parent, name), myAboutData(0), m_ldapmanager(0)
+    : TDECModule(parent, name), myAboutData(0), m_ldapmanager(0)
 {
 	m_systemconfig = new KSimpleConfig( TQString::fromLatin1( KDE_CONFDIR "/ldap/ldapconfigrc" ));
 
@@ -899,7 +899,7 @@ int LDAPConfig::setPasswordForUser(LDAPUserInfo user, TQString *errstr) {
 }
 
 int LDAPConfig::buttons() {
-	return KCModule::Apply|KCModule::Help;
+	return TDECModule::Apply|TDECModule::Help;
 }
 
 TQString LDAPConfig::quickHelp() const

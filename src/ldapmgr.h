@@ -35,7 +35,7 @@
 
 class KSimpleConfig;
 
-class LDAPConfig: public KCModule
+class LDAPConfig: public TDECModule
 {
 	Q_OBJECT
 
