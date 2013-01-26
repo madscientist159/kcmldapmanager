@@ -23,7 +23,7 @@
 
 #include <klocale.h>
 #include <kglobal.h>
-#include <kparts/genericfactory.h>
+#include <tdeparts/genericfactory.h>
 #include <ksimpleconfig.h>
 #include <kglobalsettings.h>
 #include <kstandarddirs.h>
