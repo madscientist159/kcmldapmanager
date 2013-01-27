@@ -31,7 +31,7 @@
 #include <klistview.h>
 #include <kopenwith.h>
 #include <kpropertiesdialog.h>
-#include <kio/job.h>
+#include <tdeio/job.h>
 #include <tqdir.h>
 #include <tqheader.h>
 #include <ksimpleconfig.h>

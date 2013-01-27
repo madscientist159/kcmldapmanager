@@ -1,6 +1,6 @@
 [Desktop Entry]
 Encoding=UTF-8
-Exec=kcmshell ldapmanager
+Exec=tdecmshell ldapmanager
 Icon=tdmconfig
 Type=Application
 
