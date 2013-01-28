@@ -5,7 +5,7 @@ METASOURCES = AUTO
 kde_module_LTLIBRARIES = kcm_ldapmanager.la
 
 kcm_ldapmanager_la_SOURCES = ldapmgr.cpp ldapconfigbase.ui userconfigbase.ui groupconfigbase.ui serviceconfigbase.ui userconfigdlg.cpp groupconfigdlg.cpp serviceconfigdlg.cpp
-kcm_ldapmanager_la_LIBADD = -lkio $(LIB_TDEUI) -lldap -ltdeldap
+kcm_ldapmanager_la_LIBADD = -ltdeio $(LIB_TDEUI) -lldap -ltdeldap
 kcm_ldapmanager_la_LDFLAGS = -avoid-version -module -no-undefined \
 	$(all_libraries)
 
