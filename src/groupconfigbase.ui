@@ -103,7 +103,7 @@
 										<string>Selected Accounts</string>
 									</property>
 								</widget>
-								<widget class="KListBox" row="1" column="0" colspan="1">
+								<widget class="TDEListBox" row="1" column="0" colspan="1">
 									<property name="name">
 										<cstring>availableAccounts</cstring>
 									</property>
@@ -151,7 +151,7 @@
 										</spacer>
 									</grid>
 								</widget>
-								<widget class="KListBox" row="1" column="2" colspan="1">
+								<widget class="TDEListBox" row="1" column="2" colspan="1">
 									<property name="name">
 										<cstring>selectedAccounts</cstring>
 									</property>

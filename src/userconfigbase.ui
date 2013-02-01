@@ -507,7 +507,7 @@
 								</size>
 							</property>
 						</spacer>
-						<widget class="KListView" row="1" column="0" colspan="3">
+						<widget class="TDEListView" row="1" column="0" colspan="3">
 							<column>
 								<property name="text">
 									<string>Secondary Group Name</string>

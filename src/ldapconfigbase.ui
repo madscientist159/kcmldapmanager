@@ -76,7 +76,7 @@
 						<property name="orientation">
 							<enum>Vertical</enum>
 						</property>
-						<widget class="KListView" row="1" column="0" colspan="4">
+						<widget class="TDEListView" row="1" column="0" colspan="4">
 							<column>
 								<property name="text">
 									<string>Login Name</string>
@@ -351,7 +351,7 @@
 						<property name="orientation">
 							<enum>Vertical</enum>
 						</property>
-						<widget class="KListView" row="1" column="0" colspan="4">
+						<widget class="TDEListView" row="1" column="0" colspan="4">
 							<column>
 								<property name="text">
 									<string>Group Name</string>
@@ -440,7 +440,7 @@
 												<property name="name">
 													<cstring>unnamed</cstring>
 												</property>
-												<widget class="KListView" row="0" column="0" colspan="0">
+												<widget class="TDEListView" row="0" column="0" colspan="0">
 													<column>
 														<property name="text">
 															<string>Login Name</string>
@@ -560,7 +560,7 @@
 						<property name="orientation">
 							<enum>Vertical</enum>
 						</property>
-						<widget class="KListView" row="1" column="0" colspan="4">
+						<widget class="TDEListView" row="1" column="0" colspan="4">
 							<column>
 								<property name="text">
 									<string>Machine Name</string>
@@ -749,7 +749,7 @@
 						<property name="orientation">
 							<enum>Vertical</enum>
 						</property>
-						<widget class="KListView" row="1" column="0" colspan="4">
+						<widget class="TDEListView" row="1" column="0" colspan="4">
 							<column>
 								<property name="text">
 									<string>Service Name</string>
