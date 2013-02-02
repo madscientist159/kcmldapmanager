@@ -24,7 +24,7 @@
 #include <tdecmodule.h>
 #include <kaboutdata.h>
 #include <kpushbutton.h>
-#include <klistview.h>
+#include <tdelistview.h>
 #include <tdefileitem.h>
 #include <kglobalsettings.h>
 #include <tqpushbutton.h>

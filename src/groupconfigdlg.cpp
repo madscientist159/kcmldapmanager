@@ -22,7 +22,7 @@
 #include <klineedit.h>
 #include <ktextedit.h>
 #include <knuminput.h>
-#include <kactionselector.h>
+#include <tdeactionselector.h>
 #include <tqlistbox.h>
 #include <kpushbutton.h>
 #include <tqpixmap.h>

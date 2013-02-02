@@ -28,7 +28,7 @@
 #include <kglobalsettings.h>
 #include <kstandarddirs.h>
 #include <kurlrequester.h>
-#include <klistview.h>
+#include <tdelistview.h>
 #include <kopenwith.h>
 #include <kpropertiesdialog.h>
 #include <tdeio/job.h>
