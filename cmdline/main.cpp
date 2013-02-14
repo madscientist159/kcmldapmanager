@@ -25,11 +25,11 @@
 #include <netdb.h>
 #include <pwd.h>
 
-#include <kapplication.h>
+#include <tdeapplication.h>
 #include <kstartupinfo.h>
-#include <kcmdlineargs.h>
+#include <tdecmdlineargs.h>
 #include <kuniqueapplication.h>
-#include <kaboutdata.h>
+#include <tdeaboutdata.h>
 
 #include <ksimpleconfig.h>
 

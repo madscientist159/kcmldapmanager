@@ -22,7 +22,7 @@
 #define _LDAPMGR_H_
 
 #include <tdecmodule.h>
-#include <kaboutdata.h>
+#include <tdeaboutdata.h>
 #include <kpushbutton.h>
 #include <tdelistview.h>
 #include <tdefileitem.h>
