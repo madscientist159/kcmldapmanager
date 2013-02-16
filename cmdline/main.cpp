@@ -26,7 +26,7 @@
 #include <pwd.h>
 
 #include <tdeapplication.h>
-#include <kstartupinfo.h>
+#include <tdestartupinfo.h>
 #include <tdecmdlineargs.h>
 #include <kuniqueapplication.h>
 #include <tdeaboutdata.h>

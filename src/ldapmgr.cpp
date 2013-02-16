@@ -21,11 +21,11 @@
 #include <tqlayout.h>
 #include <tqapplication.h>
 
-#include <klocale.h>
-#include <kglobal.h>
+#include <tdelocale.h>
+#include <tdeglobal.h>
 #include <tdeparts/genericfactory.h>
 #include <ksimpleconfig.h>
-#include <kglobalsettings.h>
+#include <tdeglobalsettings.h>
 #include <kstandarddirs.h>
 #include <kurlrequester.h>
 #include <tdelistview.h>
@@ -36,7 +36,7 @@
 #include <tqheader.h>
 #include <ksimpleconfig.h>
 #include <kcombobox.h>
-#include <kmessagebox.h>
+#include <tdemessagebox.h>
 #include <klineedit.h>
 #include <kiconloader.h>
 

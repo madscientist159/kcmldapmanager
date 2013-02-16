@@ -26,7 +26,7 @@
 #include <kpushbutton.h>
 #include <tdelistview.h>
 #include <tdefileitem.h>
-#include <kglobalsettings.h>
+#include <tdeglobalsettings.h>
 #include <tqpushbutton.h>
 #include <tqcombobox.h>
 
