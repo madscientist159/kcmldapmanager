@@ -48,6 +48,7 @@
 #include "ldappasswddlg.h"
 #include "userconfigdlg.h"
 #include "groupconfigdlg.h"
+#include "machineconfigdlg.h"
 #include "serviceconfigdlg.h"
 
 // FIXME
@@ -91,7 +92,7 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 	base->service_author->setEnabled(false);
 
 	base->user_icon->setPixmap(SmallIcon("personal.png"));
-	base->group_icon->setPixmap(SmallIcon("kdmconfig.png"));
+	base->group_icon->setPixmap(SmallIcon("tdmconfig.png"));
 	base->machine_icon->setPixmap(SmallIcon("system.png"));
 	base->service_icon->setPixmap(SmallIcon("kcmsystem.png"));
 
@@ -108,6 +109,7 @@ LDAPConfig::LDAPConfig(TQWidget *parent, const char *name, const TQStringList&)
 
 	connect(base->user_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewUser()));
 	connect(base->group_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewGroup()));
+	connect(base->machine_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewMachine()));
 	connect(base->service_buttonAdd, TQT_SIGNAL(clicked()), this, TQT_SLOT(addNewService()));
 	connect(base->user_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedUser()));
 	connect(base->group_buttonModify, TQT_SIGNAL(clicked()), this, TQT_SLOT(modifySelectedGroup()));
@@ -235,11 +237,9 @@ void LDAPConfig::processLockouts() {
 	else {
 		base->machine_buttonDelete->setEnabled(false);
 	}
+	base->machine_buttonAdd->setEnabled(connected);
 	// FIXME
-	// Disable machine add/modify as they are not implemented
-	// In fact, I don't know if I CAN implement them!
-	// Think about it...yes you can add the 'add' feature...kadmin 'ank --random-key host/HOSTNAME.FQDN'...
-	base->machine_buttonAdd->setEnabled(false);
+	// Disable machine modify as it is not yet implemented
 	base->machine_buttonModify->setEnabled(false);
 	base->machine_buttonRefresh->setEnabled(connected);
 
@@ -772,6 +772,21 @@ void LDAPConfig::addNewGroup() {
 		else {
 			// PEBKAC
 			KMessageBox::error(0, i18n("<qt>Unable to add new group with no name!<p>Enter a name and try again</qt>"), i18n("Illegal Operation"));
+		}
+	}
+	updateAllInformation();
+}
+
+void LDAPConfig::addNewMachine() {
+	// Launch a dialog to add the machine
+	LDAPMachineInfo machine;
+
+	MachineConfigDialog machineconfigdlg(machine, m_ldapmanager->realm(), this);
+	if (machineconfigdlg.exec() == TQDialog::Accepted) {
+		machine = machineconfigdlg.m_machine;
+		TQString errorstring;
+		if (m_ldapmanager->addMachineInfo(machine, &errorstring) != 0) {
+			KMessageBox::error(0, i18n("<qt>Unable to add new machine!<p>%1</qt>").arg(errorstring), i18n("Internal Failure"));
 		}
 	}
 	updateAllInformation();

@@ -50,7 +50,7 @@ GroupConfigDialog::GroupConfigDialog(LDAPGroupInfo group, LDAPConfig* parent, co
 		m_base->groupName->setEnabled(false);
 	}
 
-	m_base->detailsIcon->setPixmap(SmallIcon("kdmconfig.png"));
+	m_base->detailsIcon->setPixmap(SmallIcon("tdmconfig.png"));
 
 	connect(m_base->addToGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(addSelectedUserToGroup()));
 	connect(m_base->removeFromGroup, TQT_SIGNAL(clicked()), this, TQT_SLOT(removeSelectedUserFromGroup()));

@@ -67,6 +67,7 @@ class LDAPConfig: public TDECModule
 		void serviceHighlighted();
 		void addNewUser();
 		void addNewGroup();
+		void addNewMachine();
 		void addNewService();
 		void modifySelectedUser();
 		void modifySelectedGroup();

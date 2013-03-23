@@ -58,7 +58,7 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	m_base->enabledIcon->setPixmap(SmallIcon("decrypted.png"));
 	m_base->disabledIcon->setPixmap(SmallIcon("encrypted.png"));
 	m_base->userIcon->setPixmap(SmallIcon("personal.png"));
-	m_base->groupsIcon->setPixmap(SmallIcon("kdmconfig.png"));
+	m_base->groupsIcon->setPixmap(SmallIcon("tdmconfig.png"));
 	m_base->passwordIcon->setPixmap(SmallIcon("password.png"));
 
 	connect(m_base->loginName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));

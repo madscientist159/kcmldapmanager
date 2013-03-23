@@ -58,10 +58,12 @@ static const TDECmdLineOptions options[] =
 	{ "givenname <first name>", I18N_NOOP("Sets the first name of the specified account to the given value"), 0 },
 	{ "surname <last name>", I18N_NOOP("Sets the last name of the specified account to the given value"), 0 },
 	{ "group <groupname>", I18N_NOOP("Sets membership of the specified account in the groups listed on the command line, and revokes membership in any groups not listed.  This option may be used multiple times."), 0 },
+	{ "primarygroup <groupname>", I18N_NOOP("Sets membership of the specified account in the group listed on the command line, and sets that group as the user's primary group."), 0 },
 	{ "revokeallgroups", I18N_NOOP("Revokes membership of the specified account for all groups"), 0 },
 	{ "adminusername <username>", I18N_NOOP("Specifies the username of the administrative user with permissions to perform the requested task"), 0 },
 	{ "adminpasswordfile <password file>", I18N_NOOP("Specifies the location of a file which contains the password of the administrative user"), 0 },
-	{ "!+command", I18N_NOOP("The command to execute on the Kerberos realm.  Valid commands are: adduser deluser"), 0 },
+	{ "anonymous", I18N_NOOP("Do not use authentication when contacting the realm controller"), 0 },
+	{ "!+command", I18N_NOOP("The command to execute on the Kerberos realm.  Valid commands are: adduser deluser listusers"), 0 },
 	{ "!+realm", I18N_NOOP("The Kerberos realm on which to execute the specified command.  Example: MY.REALM"), 0 },
 	{ "", I18N_NOOP("This utility will use GSSAPI to connect to the realm controller.  You must own an active, valid Kerberos ticket in order to use this utility!"), 0 },
 	TDECmdLineLastOption // End of options.
@@ -103,20 +105,22 @@ int main(int argc, char *argv[])
 		systemconfig.setGroup("LDAPRealm-" + realm);
 		TQString host = systemconfig.readEntry("admin_server");
 		LDAPCredentials credentials;
-		if (args->isSet("adminusername") && args->isSet("adminpasswordfile")) {
-			TQString passFileName = args->getOption("adminpasswordfile");
-			TQFile passFile(passFileName);
-			if (!passFile.open(IO_ReadOnly)) {
-				printf("[ERROR] Unable to open specified password file '%s'\n\r", passFileName.ascii()); fflush(stdout);
-				return -1;
+		if (!args->isSet("anonymous")) {
+			if (args->isSet("adminusername") && args->isSet("adminpasswordfile")) {
+				TQString passFileName = args->getOption("adminpasswordfile");
+				TQFile passFile(passFileName);
+				if (!passFile.open(IO_ReadOnly)) {
+					printf("[ERROR] Unable to open specified password file '%s'\n\r", passFileName.ascii()); fflush(stdout);
+					return -1;
+				}
+				TQTextStream stream(&passFile);
+				credentials.username = args->getOption("adminusername");
+				credentials.password = stream.readLine();
+				passFile.close();
 			}
-			TQTextStream stream(&passFile);
-			credentials.username = args->getOption("adminusername");
-			credentials.password = stream.readLine();
-			passFile.close();
-		}
-		else {
-			credentials.use_gssapi = true;
+			else {
+				credentials.use_gssapi = true;
+			}
 		}
 		credentials.realm = realm;
 		LDAPManager ldapmanager(realm, host, &credentials);
@@ -174,6 +178,10 @@ int main(int argc, char *argv[])
 				printf("[ERROR] You must specify a surname when adding a user\n\r");
 				return -1;
 			}
+			if (!args->isSet("primarygroup")) {
+				printf("[ERROR] You must specify a primary group when adding a user\n\r");
+				return -1;
+			}
 
 			// Get user data
 			user.name = args->getOption("username");
@@ -214,7 +222,7 @@ int main(int argc, char *argv[])
 				if ((groupList.count() > 0) || revoke_all) {
 					LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode);
 					if (retcode != 0) {
-						printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+						printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r");
 						return -1;
 					}
 					LDAPGroupInfoList::Iterator it;
@@ -234,6 +242,20 @@ int main(int argc, char *argv[])
 								ldapmanager.updateGroupInfo(group, &errorString);
 							}
 						}
+					}
+					bool primary_gid_found = false;
+					TQString primaryGroupName = args->getOption("primarygroup");
+					for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
+						LDAPGroupInfo group = *it;
+						if (primaryGroupName == group.name) {
+							user.primary_gid = group.gid;
+							primary_gid_found = true;
+							break;
+						}
+					}
+					if (!primary_gid_found) {
+						printf("[ERROR] Invalid primary group specified\n\r");
+						return -1;
 					}
 				}
 
@@ -288,6 +310,25 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 			// FIXME
+		}
+		else if (command == "listusers") {
+			TQString errorString;
+			if (ldapmanager.bind(&errorString) != 0) {
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				return -1;
+			}
+
+			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode);
+			if (retcode != 0) {
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+				return -1;
+			}
+
+			LDAPUserInfoList::Iterator it;
+			for (it = userInfoList.begin(); it != userInfoList.end(); ++it) {
+				LDAPUserInfo user = *it;
+				printf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\r", user.uid, user.name.ascii(), user.commonName.ascii(), user.givenName.ascii(), user.initials.ascii(), user.surName.ascii(), user.shell.ascii(), user.homedir.ascii()); fflush(stdout);
+			}
 		}
 		else {
 			TDECmdLineArgs::usage(i18n("An invalid command was specified"));
