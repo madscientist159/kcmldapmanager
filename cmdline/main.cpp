@@ -216,6 +216,21 @@ int main(int argc, char *argv[])
 			else {
 				user.distinguishedName = "uid=" + user.name + "," + ldapmanager.basedn();
 			}
+			bool primary_gid_found = false;
+			TQString primaryGroupName = args->getOption("primarygroup");
+			LDAPGroupInfoList::Iterator it;
+			for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
+				LDAPGroupInfo group = *it;
+				if (primaryGroupName == group.name) {
+					user.primary_gid = group.gid;
+					primary_gid_found = true;
+					break;
+				}
+			}
+			if (!primary_gid_found) {
+				printf("[ERROR] Invalid primary group specified\n\r");
+				return -1;
+			}
 			if (ldapmanager.addUserInfo(user, &errorString) == 0) {
 				// Modify group(s) as needed
 				bool revoke_all = args->isSet("revokeallgroups");
@@ -225,7 +240,6 @@ int main(int argc, char *argv[])
 						printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r");
 						return -1;
 					}
-					LDAPGroupInfoList::Iterator it;
 					for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
 						LDAPGroupInfo group = *it;
 						if ((!revoke_all) && (groupList.contains(group.name.ascii()))) {
@@ -242,20 +256,6 @@ int main(int argc, char *argv[])
 								ldapmanager.updateGroupInfo(group, &errorString);
 							}
 						}
-					}
-					bool primary_gid_found = false;
-					TQString primaryGroupName = args->getOption("primarygroup");
-					for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
-						LDAPGroupInfo group = *it;
-						if (primaryGroupName == group.name) {
-							user.primary_gid = group.gid;
-							primary_gid_found = true;
-							break;
-						}
-					}
-					if (!primary_gid_found) {
-						printf("[ERROR] Invalid primary group specified\n\r");
-						return -1;
 					}
 				}
 
