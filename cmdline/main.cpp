@@ -134,14 +134,14 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
-			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode);
+			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
 				return -1;
 			}
-			LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode);
+			LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
 				return -1;
 			}
 
@@ -235,9 +235,9 @@ int main(int argc, char *argv[])
 				// Modify group(s) as needed
 				bool revoke_all = args->isSet("revokeallgroups");
 				if ((groupList.count() > 0) || revoke_all) {
-					LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode);
+					LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
 					if (retcode != 0) {
-						printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r");
+						printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
 						return -1;
 					}
 					for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
@@ -279,9 +279,9 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
-			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode);
+			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
 				return -1;
 			}
 
@@ -318,9 +318,9 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
-			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode);
+			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r");
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
 				return -1;
 			}
 
