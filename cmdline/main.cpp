@@ -57,13 +57,16 @@ static const TDECmdLineOptions options[] =
 	{ "homedirectory <full path>", I18N_NOOP("Sets the home directory of the specified account to the given value"), 0 },
 	{ "givenname <first name>", I18N_NOOP("Sets the first name of the specified account to the given value"), 0 },
 	{ "surname <last name>", I18N_NOOP("Sets the last name of the specified account to the given value"), 0 },
+	{ "telephone <number>", I18N_NOOP("Sets the telephone number of the specified account to the given value"), 0 },
+	{ "website <url>", I18N_NOOP("Sets the website of the specified account to the given value"), 0 },
+	{ "email <url>", I18N_NOOP("Sets the Email address of the specified account to the given value"), 0 },
 	{ "group <groupname>", I18N_NOOP("Sets membership of the specified account in the groups listed on the command line, and revokes membership in any groups not listed.  This option may be used multiple times."), 0 },
 	{ "primarygroup <groupname>", I18N_NOOP("Sets membership of the specified account in the group listed on the command line, and sets that group as the user's primary group."), 0 },
 	{ "revokeallgroups", I18N_NOOP("Revokes membership of the specified account for all groups"), 0 },
 	{ "adminusername <username>", I18N_NOOP("Specifies the username of the administrative user with permissions to perform the requested task"), 0 },
 	{ "adminpasswordfile <password file>", I18N_NOOP("Specifies the location of a file which contains the password of the administrative user"), 0 },
 	{ "anonymous", I18N_NOOP("Do not use authentication when contacting the realm controller"), 0 },
-	{ "!+command", I18N_NOOP("The command to execute on the Kerberos realm.  Valid commands are: adduser deluser listusers"), 0 },
+	{ "!+command", I18N_NOOP("The command to execute on the Kerberos realm.  Valid commands are: adduser deluser listusers listgroups"), 0 },
 	{ "!+realm", I18N_NOOP("The Kerberos realm on which to execute the specified command.  Example: MY.REALM"), 0 },
 	{ "", I18N_NOOP("This utility will use GSSAPI to connect to the realm controller.  You must own an active, valid Kerberos ticket in order to use this utility!"), 0 },
 	TDECmdLineLastOption // End of options.
@@ -200,6 +203,15 @@ int main(int argc, char *argv[])
 			else {
 				user.homedir = "/home/" + user.name;
 			}
+			if (args->isSet("telephone")) {
+				user.telephoneNumber = args->getOption("telephone");
+			}
+			if (args->isSet("website")) {
+				user.website = args->getOption("website");
+			}
+			if (args->isSet("email")) {
+				user.email = args->getOption("email");
+			}
 
 			// Get list of groups
 			QCStringList groupList = args->getOptionList("group");
@@ -324,11 +336,38 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
+			printf("=======================================================================================================================================\n\r");
+			printf("UID\tdisplay name\tcommon name\tgiven name\tinitials\tsurname\tdefault shell\thome directory\ttelephone number\twebsite\temail address\n\r");
+			printf("=======================================================================================================================================\n\r");
 			LDAPUserInfoList::Iterator it;
 			for (it = userInfoList.begin(); it != userInfoList.end(); ++it) {
 				LDAPUserInfo user = *it;
-				printf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\r", user.uid, user.name.ascii(), user.commonName.ascii(), user.givenName.ascii(), user.initials.ascii(), user.surName.ascii(), user.shell.ascii(), user.homedir.ascii()); fflush(stdout);
+				printf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\r", user.uid, user.name.ascii(), user.commonName.ascii(), user.givenName.ascii(), user.initials.ascii(), user.surName.ascii(), user.shell.ascii(), user.homedir.ascii(), user.telephoneNumber.ascii(), user.website.ascii(), user.email.ascii()); fflush(stdout);
 			}
+			printf("=======================================================================================================================================\n\r");
+		}
+		else if (command == "listgroups") {
+			TQString errorString;
+			if (ldapmanager.bind(&errorString) != 0) {
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				return -1;
+			}
+
+			LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
+			if (retcode != 0) {
+				printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				return -1;
+			}
+
+			printf("=======================================================================================================================================\n\r");
+			printf("GID\tname\n\r");
+			printf("=======================================================================================================================================\n\r");
+			LDAPGroupInfoList::Iterator it;
+			for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
+				LDAPGroupInfo group = *it;
+				printf("%d\t%s\n\r", group.gid, group.name.ascii()); fflush(stdout);
+			}
+			printf("=======================================================================================================================================\n\r");
 		}
 		else {
 			TDECmdLineArgs::usage(i18n("An invalid command was specified"));
