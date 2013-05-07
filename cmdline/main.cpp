@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 				TQString passFileName = args->getOption("adminpasswordfile");
 				TQFile passFile(passFileName);
 				if (!passFile.open(IO_ReadOnly)) {
-					printf("[ERROR] Unable to open specified password file '%s'\n\r", passFileName.ascii()); fflush(stdout);
+					printf("[ERROR] Unable to open specified password file '%s'\n", passFileName.ascii()); fflush(stdout);
 					return -1;
 				}
 				TQTextStream stream(&passFile);
@@ -133,18 +133,18 @@ int main(int argc, char *argv[])
 
 			TQString errorString;
 			if (ldapmanager.bind(&errorString) != 0) {
-				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
 			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 			LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 				for (it = userInfoList.begin(); it != userInfoList.end(); ++it) {
 					LDAPUserInfo user = *it;
 					if (user.uid == uid) {
-						printf("[ERROR] The specified POSIX user ID is already in  use\n\r");
+						printf("[ERROR] The specified POSIX user ID is already in  use\n");
 						return -1;
 					}
 				}
@@ -174,15 +174,15 @@ int main(int argc, char *argv[])
 			}
 
 			if (!args->isSet("username")) {
-				printf("[ERROR] You must specify a username when adding a user\n\r");
+				printf("[ERROR] You must specify a username when adding a user\n");
 				return -1;
 			}
 			if (!args->isSet("surname")) {
-				printf("[ERROR] You must specify a surname when adding a user\n\r");
+				printf("[ERROR] You must specify a surname when adding a user\n");
 				return -1;
 			}
 			if (!args->isSet("primarygroup")) {
-				printf("[ERROR] You must specify a primary group when adding a user\n\r");
+				printf("[ERROR] You must specify a primary group when adding a user\n");
 				return -1;
 			}
 
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 				}
 			}
 			if (!primary_gid_found) {
-				printf("[ERROR] Invalid primary group specified\n\r");
+				printf("[ERROR] Invalid primary group specified\n");
 				return -1;
 			}
 			if (ldapmanager.addUserInfo(user, &errorString) == 0) {
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 				if ((groupList.count() > 0) || revoke_all) {
 					LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
 					if (retcode != 0) {
-						printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+						printf("[ERROR] Unable to retrieve list of groups from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 						return -1;
 					}
 					for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
@@ -274,12 +274,12 @@ int main(int argc, char *argv[])
 				if (user.new_password != "") {
 					// If a new password was set, use Kerberos to set it on the server
 					if (ldapmanager.setPasswordForUser(user, &errorString) != 0) {
-						printf("[ERROR] Unable to set password for user\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+						printf("[ERROR] Unable to set password for user\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 					}
 				}
 			}
 			else {
-				printf("[ERROR] Unable to add user with distingushed name '%s'\n\r[ERROR] Detailed debugging information: %s\n\r", user.distinguishedName.ascii(), errorString.ascii());
+				printf("[ERROR] Unable to add user with distingushed name '%s'\n[ERROR] Detailed debugging information: %s\n", user.distinguishedName.ascii(), errorString.ascii());
 			}
 		}
 		else if (command == "deluser") {
@@ -287,18 +287,18 @@ int main(int argc, char *argv[])
 
 			TQString errorString;
 			if (ldapmanager.bind(&errorString) != 0) {
-				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
 			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
 			if (!args->isSet("username")) {
-				printf("[ERROR] You must specify a username when deleting a user\n\r");
+				printf("[ERROR] You must specify a username when deleting a user\n");
 				return -1;
 			}
 
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 				ldapmanager.deleteUserInfo(deluser);
 			}
 			else {
-				printf("[ERROR] User not found\n\r");
+				printf("[ERROR] User not found\n");
 				return -1;
 			}
 			// FIXME
@@ -326,48 +326,48 @@ int main(int argc, char *argv[])
 		else if (command == "listusers") {
 			TQString errorString;
 			if (ldapmanager.bind(&errorString) != 0) {
-				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
 			LDAPUserInfoList userInfoList = ldapmanager.users(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of users from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to retrieve list of users from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
-			printf("=======================================================================================================================================\n\r");
-			printf("UID\tdisplay name\tcommon name\tgiven name\tinitials\tsurname\tdefault shell\thome directory\ttelephone number\twebsite\temail address\n\r");
-			printf("=======================================================================================================================================\n\r");
+			printf("=======================================================================================================================================\n");
+			printf("UID\tdisplay name\tcommon name\tgiven name\tinitials\tsurname\tdefault shell\thome directory\ttelephone number\twebsite\temail address\n");
+			printf("=======================================================================================================================================\n");
 			LDAPUserInfoList::Iterator it;
 			for (it = userInfoList.begin(); it != userInfoList.end(); ++it) {
 				LDAPUserInfo user = *it;
-				printf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\r", user.uid, user.name.ascii(), user.commonName.ascii(), user.givenName.ascii(), user.initials.ascii(), user.surName.ascii(), user.shell.ascii(), user.homedir.ascii(), user.telephoneNumber.ascii(), user.website.ascii(), user.email.ascii()); fflush(stdout);
+				printf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", user.uid, user.name.ascii(), user.commonName.ascii(), user.givenName.ascii(), user.initials.ascii(), user.surName.ascii(), user.shell.ascii(), user.homedir.ascii(), user.telephoneNumber.ascii(), user.website.ascii(), user.email.ascii()); fflush(stdout);
 			}
-			printf("=======================================================================================================================================\n\r");
+			printf("=======================================================================================================================================\n");
 		}
 		else if (command == "listgroups") {
 			TQString errorString;
 			if (ldapmanager.bind(&errorString) != 0) {
-				printf("[ERROR] Unable to bind to Kerberos realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to bind to Kerberos realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
 			LDAPGroupInfoList groupInfoList = ldapmanager.groups(&retcode, &errorString);
 			if (retcode != 0) {
-				printf("[ERROR] Unable to retrieve list of groups from realm controller\n\r[ERROR] Detailed debugging information: %s\n\r", errorString.ascii());
+				printf("[ERROR] Unable to retrieve list of groups from realm controller\n[ERROR] Detailed debugging information: %s\n", errorString.ascii());
 				return -1;
 			}
 
-			printf("=======================================================================================================================================\n\r");
-			printf("GID\tname\n\r");
-			printf("=======================================================================================================================================\n\r");
+			printf("=======================================================================================================================================\n");
+			printf("GID\tname\n");
+			printf("=======================================================================================================================================\n");
 			LDAPGroupInfoList::Iterator it;
 			for (it = groupInfoList.begin(); it != groupInfoList.end(); ++it) {
 				LDAPGroupInfo group = *it;
-				printf("%d\t%s\n\r", group.gid, group.name.ascii()); fflush(stdout);
+				printf("%d\t%s\n", group.gid, group.name.ascii()); fflush(stdout);
 			}
-			printf("=======================================================================================================================================\n\r");
+			printf("=======================================================================================================================================\n");
 		}
 		else {
 			TDECmdLineArgs::usage(i18n("An invalid command was specified"));
