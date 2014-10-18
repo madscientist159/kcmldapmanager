@@ -12,6 +12,6 @@ X-TDE-ParentApp=kcontrol
 [Desktop Entry]
 Encoding=UTF-8
 Comment=A KControl tool for managing users, groups, and machines in LDAP realms
-Keywords=ldap manager
+Keywords=ldap manager;
 Name=LDAP Realm Manager
 Categories=Qt;TDE;X-TDE-settings-components;
