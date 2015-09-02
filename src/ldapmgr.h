@@ -110,6 +110,8 @@ class LDAPConfig: public TDECModule
 		LDAPGroupInfoList m_groupInfoList;
 		LDAPMachineInfoList m_machineInfoList;
 		LDAPServiceInfoList m_serviceInfoList;
+
+	friend class UserConfigDialog;
 };
 
 #endif

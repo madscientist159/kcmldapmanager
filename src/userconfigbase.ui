@@ -841,6 +841,127 @@
 						</spacer>
 					</grid>
 				</widget>
+				<widget class="TQWidget">
+					<property name="name">
+						<cstring>passwordTab</cstring>
+					</property>
+					<attribute name="title">
+						<string>Certificates and Cards</string>
+					</attribute>
+					<grid>
+						<property name="name">
+							<cstring>unnamed</cstring>
+						</property>
+						<widget class="TQLabel" row="0" column="0" colspan="1">
+							<property name="name">
+								<cstring>certificateIcon</cstring>
+							</property>
+							<property name="sizePolicy">
+								<sizepolicy>
+									<hsizetype>4</hsizetype>
+									<vsizetype>5</vsizetype>
+									<horstretch>0</horstretch>
+									<verstretch>0</verstretch>
+								</sizepolicy>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="0" column="1" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>New PKI Certificate</string>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="1" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Expires:</string>
+							</property>
+						</widget>
+						<widget class="KDateWidget" row="1" column="2" colspan="3">
+							<property name="name">
+								<cstring>certificateExpirationDate</cstring>
+							</property>
+							<property name="enabled">
+								<cstring>true</cstring>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="2" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Private key location:</string>
+							</property>
+						</widget>
+						<widget class="KURLRequester" row="2" column="2" colspan="1">
+							<property name="name">
+								<cstring>certPrivateKeyFileName</cstring>
+							</property>
+							<property name="filter">
+								<cstring>*.key</cstring>
+							</property>
+							<property name="mode">
+								<number>17</number>
+							</property>
+						</widget>
+						<widget class="TQCheckBox" row="2" column="4" colspan="1">
+							<property name="name">
+								<cstring>certGenPrivateKey</cstring>
+							</property>
+							<property name="text">
+								<string>Create new private key</string>
+							</property>
+						</widget>
+						<widget class="TQLabel" row="3" column="0" colspan="2">
+							<property name="name">
+								<cstring>unnamed</cstring>
+							</property>
+							<property name="text">
+								<string>Public certificate location:</string>
+							</property>
+						</widget>
+						<widget class="KURLRequester" row="3" column="2" colspan="3">
+							<property name="name">
+								<cstring>certPublicCertFileName</cstring>
+							</property>
+							<property name="filter">
+								<cstring>*.pem</cstring>
+							</property>
+							<property name="mode">
+								<number>17</number>
+							</property>
+						</widget>
+						<widget class="KPushButton" row="4" column="0" colspan="5">
+							<property name="name">
+								<cstring>createCertificate</cstring>
+							</property>
+							<property name="text">
+								<string>Generate New PKI Certificate</string>
+							</property>
+						</widget>
+						<spacer row="10" column="0">
+							<property name="name" stdset="0">
+								<cstring>Spacer2</cstring>
+							</property>
+							<property name="orientation">
+								<enum>Vertical</enum>
+							</property>
+							<property name="sizeType">
+								<enum>Expanding</enum>
+							</property>
+							<property name="sizeHint">
+								<size>
+									<width>20</width>
+									<height>20</height>
+								</size>
+							</property>
+						</spacer>
+					</grid>
+				</widget>
 			</widget>
 		</grid>
 	</widget>

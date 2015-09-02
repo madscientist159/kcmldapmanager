@@ -39,6 +39,7 @@ public:
 public slots:
 	void slotOk();
 	void processLockouts();
+	void createPKICertificate();
 
 public:
 	LDAPUserConfigBase *m_base;

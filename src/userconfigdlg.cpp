@@ -22,6 +22,9 @@
 #include <klineedit.h>
 #include <ktextedit.h>
 #include <knuminput.h>
+#include <tdetempfile.h>
+#include <kstandarddirs.h>
+#include <tdemessagebox.h>
 #include <tdeactionselector.h>
 #include <tqlistbox.h>
 #include <kpushbutton.h>
@@ -32,6 +35,7 @@
 #include <kcombobox.h>
 #include <tqradiobutton.h>
 #include <tqcheckbox.h>
+#include <kdatewidget.h>
 #include <kdatetimewidget.h>
 #include <kpassdlg.h>
 #include <kiconloader.h>
@@ -60,6 +64,7 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	m_base->userIcon->setPixmap(SmallIcon("personal.png"));
 	m_base->groupsIcon->setPixmap(SmallIcon("tdmconfig.png"));
 	m_base->passwordIcon->setPixmap(SmallIcon("password.png"));
+	m_base->certificateIcon->setPixmap(SmallIcon("password.png"));
 
 	connect(m_base->loginName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->realName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
@@ -70,6 +75,10 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	connect(m_base->requirePasswordAging, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->requirePasswordMinAge, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->primaryGroup, TQT_SIGNAL(activated(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->certGenPrivateKey, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
+	connect(m_base->certPrivateKeyFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->certPublicCertFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->createCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(createPKICertificate()));
 
 	if (m_user.status == KRB5_DISABLED_ACCOUNT) {
 		m_base->userStatusEnabled->setChecked(false);
@@ -127,6 +136,10 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	m_base->telephoneNumber->setText(m_user.telephoneNumber);
 	m_base->faxNumber->setText(m_user.faxNumber);
 	m_base->email->setText(m_user.email);
+
+	// Certificate generation information
+	TQDateTime suggestedExpiration = TQDateTime::currentDateTime().addDays(KERBEROS_PKI_KRB_EXPIRY_DAYS);
+	m_base->certificateExpirationDate->setDate(suggestedExpiration.date());
 
 	processLockouts();
 }
@@ -252,7 +265,60 @@ void UserConfigDialog::processLockouts() {
 	}
 	enableButton(KDialogBase::Ok, ok_enabled);
 
+	if (m_base->certPrivateKeyFileName->url() == "") {
+		ok_enabled = false;
+	}
+	if (m_base->certPublicCertFileName->url() == "") {
+		ok_enabled = false;
+	}
+	if (!m_base->certGenPrivateKey->isChecked()) {
+		if (!TQFile(m_base->certPrivateKeyFileName->url()).exists()) {
+			ok_enabled = false;
+		}
+	}
+	m_base->createCertificate->setEnabled(ok_enabled);
+
 	m_prevPrimaryGroup = m_base->primaryGroup->currentText();
+}
+
+void UserConfigDialog::createPKICertificate() {
+	TQString errorstring;
+	LDAPCertConfig certinfo;
+	LDAPRealmConfigList realms = LDAPManager::fetchAndReadTDERealmList();
+
+	certinfo.kerberosExpiryDays = TQDate::currentDate().daysTo(m_base->certificateExpirationDate->date());
+
+	if (m_base->certGenPrivateKey->isChecked()) {
+		// Generate new private key
+		if (LDAPManager::generateClientCertificatePrivateKey(m_user, realms[m_ldapconfig->m_ldapmanager->realm()], m_base->certPrivateKeyFileName->url(), &errorstring) != 0) {
+			KMessageBox::sorry(this, i18n("<qt><b>Unable to generate new private key</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Obtain Certificate"));
+			return;
+		}
+	}
+
+	// Get the CA root private key from LDAP
+	// WARNING
+	// Anyone with access to this key would be able to create accounts that could access any resource on the realm!
+	// Secure the key file accordingly...
+	KTempFile caPrivateKeyTempFile(locateLocal("tmp", "krbcakey"), ".key.pem", 0600);
+	caPrivateKeyTempFile.setAutoDelete(true);
+	TQFile* caPrivateKeyFile = caPrivateKeyTempFile.file();
+	if (!caPrivateKeyFile) {
+		KMessageBox::sorry(this, i18n("<qt><b>Unable to obtain root certificate for realm %1!</b><p>Details: %2</qt>").arg(realms[m_ldapconfig->m_ldapmanager->realm()].name.upper()).arg(i18n("Unable to create or open temporary file '%s'").arg(caPrivateKeyTempFile.name())), i18n("Unable to Obtain Certificate"));
+		return;
+	}
+	if (m_ldapconfig->m_ldapmanager->getTDECertificate("privateRootCertificateKey", caPrivateKeyFile, &errorstring) != 0) {
+		KMessageBox::sorry(this, i18n("<qt><b>Unable to obtain root certificate for realm %1!</b><p>Details: %2</qt>").arg(realms[m_ldapconfig->m_ldapmanager->realm()].name.upper()).arg(errorstring), i18n("Unable to Obtain Certificate"));
+		return;
+	}
+	caPrivateKeyTempFile.sync();
+
+	if (LDAPManager::generateClientCertificatePublicCertificate(certinfo, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url()) != 0) {
+		KMessageBox::sorry(this, i18n("<qt><b>Unable to generate or sign certificate</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Create Certificate"));
+	}
+
+	// Delete the private key as soon as possible after certificate signing
+	caPrivateKeyTempFile.unlink();
 }
 
 LDAPUserInfo UserConfigDialog::userProperties() {
