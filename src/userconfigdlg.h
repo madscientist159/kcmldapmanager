@@ -40,6 +40,9 @@ public slots:
 	void slotOk();
 	void processLockouts();
 	void createPKICertificate();
+	void revokePKICertificate();
+	void downloadPKICertificate();
+	void updatePKICertificateList();
 
 public:
 	LDAPUserConfigBase *m_base;

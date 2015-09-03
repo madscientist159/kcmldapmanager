@@ -22,9 +22,11 @@
 #include <klineedit.h>
 #include <ktextedit.h>
 #include <knuminput.h>
+#include <ktempdir.h>
 #include <tdetempfile.h>
 #include <kstandarddirs.h>
 #include <tdemessagebox.h>
+#include <tdefiledialog.h>
 #include <tdeactionselector.h>
 #include <tqlistbox.h>
 #include <kpushbutton.h>
@@ -39,6 +41,7 @@
 #include <kdatetimewidget.h>
 #include <kpassdlg.h>
 #include <kiconloader.h>
+#include <ksslcertificate.h>
 
 #include "ldapmgr.h"
 #include "userconfigdlg.h"
@@ -79,6 +82,10 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	connect(m_base->certPrivateKeyFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->certPublicCertFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->createCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(createPKICertificate()));
+	connect(m_base->revokeCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(revokePKICertificate()));
+	connect(m_base->downloadCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(downloadPKICertificate()));
+	connect(m_base->certPKIDatabaseList, TQT_SIGNAL(selectionChanged()), this, TQT_SLOT(processLockouts()));
+	connect(m_base->certPKIDatabaseList, TQT_SIGNAL(executed(TQListViewItem*)), this, TQT_SLOT(downloadPKICertificate()));
 
 	if (m_user.status == KRB5_DISABLED_ACCOUNT) {
 		m_base->userStatusEnabled->setChecked(false);
@@ -140,6 +147,10 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	// Certificate generation information
 	TQDateTime suggestedExpiration = TQDateTime::currentDateTime().addDays(KERBEROS_PKI_KRB_EXPIRY_DAYS);
 	m_base->certificateExpirationDate->setDate(suggestedExpiration.date());
+
+	m_base->certPKIDatabaseList->setAllColumnsShowFocus(true);
+	m_base->certPKIDatabaseList->setFullWidth(true);
+	updatePKICertificateList();
 
 	processLockouts();
 }
@@ -278,19 +289,35 @@ void UserConfigDialog::processLockouts() {
 	}
 	m_base->createCertificate->setEnabled(ok_enabled);
 
+	TQListViewItem* lvi = m_base->certPKIDatabaseList->selectedItem();
+	if (lvi) {
+		if (lvi->text(1) != i18n("Revoked")) {
+			m_base->revokeCertificate->setEnabled(true);
+			m_base->downloadCertificate->setEnabled(true);
+		}
+		else {
+			m_base->revokeCertificate->setEnabled(false);
+			m_base->downloadCertificate->setEnabled(true);
+		}
+	}
+	else {
+		m_base->revokeCertificate->setEnabled(false);
+		m_base->downloadCertificate->setEnabled(false);
+	}
+
 	m_prevPrimaryGroup = m_base->primaryGroup->currentText();
 }
 
 void UserConfigDialog::createPKICertificate() {
+	int ret;
 	TQString errorstring;
-	LDAPCertConfig certinfo;
 	LDAPRealmConfigList realms = LDAPManager::fetchAndReadTDERealmList();
 
-	certinfo.kerberosExpiryDays = TQDate::currentDate().daysTo(m_base->certificateExpirationDate->date());
+	int expirydays = TQDate::currentDate().daysTo(m_base->certificateExpirationDate->date());
 
 	if (m_base->certGenPrivateKey->isChecked()) {
 		// Generate new private key
-		if (LDAPManager::generateClientCertificatePrivateKey(m_user, realms[m_ldapconfig->m_ldapmanager->realm()], m_base->certPrivateKeyFileName->url(), &errorstring) != 0) {
+		if (LDAPManager::generateClientCertificatePrivateKey(m_base->certPrivateKeyFileName->url(), &errorstring) != 0) {
 			KMessageBox::sorry(this, i18n("<qt><b>Unable to generate new private key</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Obtain Certificate"));
 			return;
 		}
@@ -313,12 +340,194 @@ void UserConfigDialog::createPKICertificate() {
 	}
 	caPrivateKeyTempFile.sync();
 
-	if (LDAPManager::generateClientCertificatePublicCertificate(certinfo, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url()) != 0) {
-		KMessageBox::sorry(this, i18n("<qt><b>Unable to generate or sign certificate</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Create Certificate"));
-	}
+	ret = LDAPManager::generateClientCertificatePublicCertificate(expirydays, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url());
 
 	// Delete the private key as soon as possible after certificate signing
 	caPrivateKeyTempFile.unlink();
+
+	if (ret != 0) {
+		KMessageBox::sorry(this, i18n("<qt><b>Unable to generate or sign certificate</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Create Certificate"));
+	}
+
+	// Upload new certificate to LDAP server
+	PKICertificateEntry certEntry;
+	certEntry.first = PKICertificateStatus::Valid;
+	TQFile certfile(m_base->certPublicCertFileName->url());
+	if (certfile.open(IO_ReadOnly)) {
+		certEntry.second = certfile.readAll();
+		m_user.pkiCertificates.append(certEntry);
+		if (m_ldapconfig->m_ldapmanager->writePKICertificateFilesIntoDirectory(m_user, "pkiCertificate", &errorstring) != 0) {
+			m_user.pkiCertificates.remove(certEntry);
+			KMessageBox::sorry(this, i18n("<qt><b>Unable to upload certificate to server</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Upload Certificate"));
+		}
+	}
+	else {
+		KMessageBox::sorry(this, i18n("<qt><b>Unable to upload certificate to server</b><p>Details: %1</qt>").arg(i18n("Unable to open certificate file")), i18n("Unable to Upload Certificate"));
+	}
+
+	updatePKICertificateList();
+}
+
+void UserConfigDialog::downloadPKICertificate() {
+	TQString errorstring;
+	PKICertificateEntryList originalCertList = m_user.pkiCertificates;
+
+	TQListViewItem* lvi = m_base->certPKIDatabaseList->selectedItem();
+	if (lvi) {
+		TQString fileName = KFileDialog::getSaveFileName(TQString::null, "*.pem", 0, i18n("Save Certificate"));
+		if (fileName != "") {
+			// Find the certificate
+			PKICertificateEntryList::Iterator it;
+			for (it = m_user.pkiCertificates.begin(); it != m_user.pkiCertificates.end(); ++it) {
+				PKICertificateEntry certificateData = *it;
+
+				TQCString ssldata(certificateData.second);
+				ssldata[certificateData.second.size()] = 0;
+				ssldata.replace("-----BEGIN CERTIFICATE-----", "");
+				ssldata.replace("-----END CERTIFICATE-----", "");
+				ssldata.replace("\n", "");
+				KSSLCertificate* cert = KSSLCertificate::fromString(ssldata);
+				if (cert) {
+					if ((cert->getSerialNumber() == lvi->text(0))
+						&& (cert->getQDTNotBefore().toString() == lvi->text(2))
+						&& (cert->getQDTNotAfter().toString() == lvi->text(3))) {
+						TQFile certfile(fileName);
+						if (certfile.open(IO_WriteOnly)) {
+							certfile.writeBlock(certificateData.second);
+						}
+						else {
+							KMessageBox::sorry(this, i18n("<qt><b>Unable to download certificate</b><p>Details: %1</qt>").arg(i18n("Could not open file '%s' for writing").arg(fileName)), i18n("Unable to Download Certificate"));
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void UserConfigDialog::revokePKICertificate() {
+	int ret;
+	TQString errorstring;
+	PKICertificateEntryList originalCertList = m_user.pkiCertificates;
+	LDAPRealmConfigList realms = LDAPManager::fetchAndReadTDERealmList();
+
+	KTempDir tempDir = KTempDir(locateLocal("tmp", "tdekrb"));
+	tempDir.setAutoDelete(true);
+
+	TQListViewItem* lvi = m_base->certPKIDatabaseList->selectedItem();
+	if (lvi) {
+		if (KMessageBox::warningYesNo(this, i18n("<qt><b>You are about to revoke the certificate with serial number %1</b><br>This action cannot be undone<p>Are you sure you want to proceed?</qt>").arg(lvi->text(0)), i18n("Confirmation Required")) == KMessageBox::Yes) {
+			// Find the certificate
+			PKICertificateEntryList::Iterator it;
+			for (it = m_user.pkiCertificates.begin(); it != m_user.pkiCertificates.end(); ++it) {
+				PKICertificateEntry certificateData = *it;
+
+				TQCString ssldata(certificateData.second);
+				ssldata[certificateData.second.size()] = 0;
+				ssldata.replace("-----BEGIN CERTIFICATE-----", "");
+				ssldata.replace("-----END CERTIFICATE-----", "");
+				ssldata.replace("\n", "");
+				KSSLCertificate* cert = KSSLCertificate::fromString(ssldata);
+				if (cert) {
+					if ((cert->getSerialNumber() == lvi->text(0))
+						&& (cert->getQDTNotBefore().toString() == lvi->text(2))
+						&& (cert->getQDTNotAfter().toString() == lvi->text(3))) {
+						(*it).first = PKICertificateStatus::Revoked;
+						break;
+					}
+				}
+			}
+
+			// Commit updates to the LDAP database
+			if (m_ldapconfig->m_ldapmanager->writePKICertificateFilesIntoDirectory(m_user, "pkiCertificate", &errorstring) == 0) {
+				// Get the configured CRL validity duration from LDAP
+				int expiryDays;
+				TQString expiryString;
+				if (m_ldapconfig->m_ldapmanager->getLdapCertificateStoreAttribute("publicRootCRLIntervalDays", &expiryString, &errorstring) == 0) {
+					expiryDays = expiryString.toInt();
+					if (expiryDays < 1) {
+						expiryDays = KERBEROS_PKI_CRL_EXPIRY_DAYS;
+					}
+
+					// Get the CA root private key from LDAP
+					// WARNING
+					// Anyone with access to this key would be able to create accounts that could access any resource on the realm!
+					// Secure the key file accordingly...
+					KTempFile caPrivateKeyTempFile(locateLocal("tmp", "krbcakey"), ".key.pem", 0600);
+					caPrivateKeyTempFile.setAutoDelete(true);
+					TQFile* caPrivateKeyFile = caPrivateKeyTempFile.file();
+					if (!caPrivateKeyFile) {
+						KMessageBox::sorry(this, i18n("<qt><b>Unable to obtain root certificate for realm %1!</b><p>Details: %2</qt>").arg(realms[m_ldapconfig->m_ldapmanager->realm()].name.upper()).arg(i18n("Unable to create or open temporary file '%s'").arg(caPrivateKeyTempFile.name())), i18n("Unable to Obtain Certificate"));
+						return;
+					}
+					if (m_ldapconfig->m_ldapmanager->getTDECertificate("privateRootCertificateKey", caPrivateKeyFile, &errorstring) != 0) {
+						KMessageBox::sorry(this, i18n("<qt><b>Unable to obtain root certificate for realm %1!</b><p>Details: %2</qt>").arg(realms[m_ldapconfig->m_ldapmanager->realm()].name.upper()).arg(errorstring), i18n("Unable to Obtain Certificate"));
+						return;
+					}
+					caPrivateKeyTempFile.sync();
+
+					// Regenerate CRL
+					ret = m_ldapconfig->m_ldapmanager->generatePKICRL(expiryDays, realms[m_ldapconfig->m_ldapmanager->realm()], tempDir.name() + "crl.pem", caPrivateKeyTempFile.name(), tempDir.name() + "ca.db", &errorstring);
+
+					// Delete the private key as soon as possible after certificate signing
+					caPrivateKeyTempFile.unlink();
+
+					if (ret != 0) {
+						KMessageBox::error(this, i18n("<qt><b>Unable to regenerate CRL</b><br>The revoked certificate may still be able to access resources on the realm<p>Details: %1</qt>").arg(errorstring), i18n("Unable to Regenerate CRL"));
+					}
+				}
+				else {
+					KMessageBox::error(this, i18n("<qt><b>Unable to regenerate CRL</b><br>The revoked certificate may still be able to access resources on the realm<p>Details: %1</qt>").arg(errorstring), i18n("Unable to Regenerate CRL"));
+				}
+			}
+			else {
+				m_user.pkiCertificates = originalCertList;
+				KMessageBox::sorry(this, i18n("<qt><b>Unable to modify certificate status on server</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Modify Certificate Status"));
+			}
+		}
+	}
+
+	updatePKICertificateList();
+}
+
+void UserConfigDialog::updatePKICertificateList() {
+	m_base->certPKIDatabaseList->clear();
+
+	PKICertificateEntryList::Iterator it;
+	for (it = m_user.pkiCertificates.begin(); it != m_user.pkiCertificates.end(); ++it) {
+		PKICertificateEntry certificateData = *it;
+
+		TQCString ssldata(certificateData.second);
+		ssldata[certificateData.second.size()] = 0;
+		ssldata.replace("-----BEGIN CERTIFICATE-----", "");
+		ssldata.replace("-----END CERTIFICATE-----", "");
+		ssldata.replace("\n", "");
+		KSSLCertificate* cert = KSSLCertificate::fromString(ssldata);
+		if (cert) {
+			TQString status = i18n("Invalid");
+			if (certificateData.first == PKICertificateStatus::Valid) {
+				if (TQDate::currentDate().daysTo(cert->getQDTNotAfter().date()) < 0) {
+					status = i18n("Expired");
+				}
+				else {
+					if (cert->getQDTNotBefore().date().daysTo(TQDate::currentDate()) < 0) {
+						status = i18n("Future Valid");
+					}
+					else {
+						status = i18n("Valid");
+					}
+				}
+			}
+			if (certificateData.first == PKICertificateStatus::Revoked) {
+				status = i18n("Revoked");
+			}
+			new TQListViewItem(m_base->certPKIDatabaseList, cert->getSerialNumber(), status, cert->getQDTNotBefore().toString(), cert->getQDTNotAfter().toString());
+			delete cert;
+		}
+	}
+
+	processLockouts();
 }
 
 LDAPUserInfo UserConfigDialog::userProperties() {

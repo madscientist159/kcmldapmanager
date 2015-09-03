@@ -878,7 +878,7 @@
 								<cstring>unnamed</cstring>
 							</property>
 							<property name="text">
-								<string>Expires:</string>
+								<string>Expiry:</string>
 							</property>
 						</widget>
 						<widget class="KDateWidget" row="1" column="2" colspan="3">
@@ -942,6 +942,84 @@
 							<property name="text">
 								<string>Generate New PKI Certificate</string>
 							</property>
+						</widget>
+						<widget class="TQLayoutWidget" row="5" column="0" colspan="5">
+							<property name="name">
+								<cstring>unnamed_layoutwidget1</cstring>
+							</property>
+							<grid>
+								<property name="margin">
+									<number>0</number>
+								</property>
+								<widget class="TDEListView" row="5" column="0" colspan="2">
+									<column>
+										<property name="text">
+											<string>Serial</string>
+										</property>
+										<property name="clickable">
+											<bool>true</bool>
+										</property>
+										<property name="resizeable">
+											<bool>true</bool>
+										</property>
+									</column>
+									<column>
+										<property name="text">
+											<string>Status</string>
+										</property>
+										<property name="clickable">
+											<bool>true</bool>
+										</property>
+										<property name="resizeable">
+											<bool>true</bool>
+										</property>
+									</column>
+									<column>
+										<property name="text">
+											<string>Created</string>
+										</property>
+										<property name="clickable">
+											<bool>true</bool>
+										</property>
+										<property name="resizeable">
+											<bool>true</bool>
+										</property>
+									</column>
+									<column>
+										<property name="text">
+											<string>Expiry</string>
+										</property>
+										<property name="clickable">
+											<bool>true</bool>
+										</property>
+										<property name="resizeable">
+											<bool>true</bool>
+										</property>
+									</column>
+									<property name="name">
+										<cstring>certPKIDatabaseList</cstring>
+									</property>
+									<property name="rootIsDecorated">
+										<bool>false</bool>
+									</property>
+								</widget>
+								<widget class="KPushButton" row="6" column="0" colspan="1">
+									<property name="name">
+										<cstring>revokeCertificate</cstring>
+									</property>
+									<property name="text">
+										<string>Revoke Selected Certificate</string>
+									</property>
+								</widget>
+								<widget class="KPushButton" row="6" column="1" colspan="1">
+									<property name="name">
+										<cstring>downloadCertificate</cstring>
+									</property>
+									<property name="text">
+										<string>Download Selected Certificate</string>
+									</property>
+								</widget>
+							</grid>
 						</widget>
 						<spacer row="10" column="0">
 							<property name="name" stdset="0">
