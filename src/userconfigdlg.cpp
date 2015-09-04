@@ -507,11 +507,11 @@ void UserConfigDialog::updatePKICertificateList() {
 		if (cert) {
 			TQString status = i18n("Invalid");
 			if (certificateData.first == PKICertificateStatus::Valid) {
-				if (TQDate::currentDate().daysTo(cert->getQDTNotAfter().date()) < 0) {
+				if (TQDateTime::currentDateTime(Qt::UTC) > cert->getQDTNotAfter()) {
 					status = i18n("Expired");
 				}
 				else {
-					if (cert->getQDTNotBefore().date().daysTo(TQDate::currentDate()) < 0) {
+					if (TQDateTime::currentDateTime(Qt::UTC) < cert->getQDTNotBefore()) {
 						status = i18n("Future Valid");
 					}
 					else {
