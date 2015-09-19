@@ -317,7 +317,9 @@ void UserConfigDialog::createPKICertificate() {
 
 	if (m_base->certGenPrivateKey->isChecked()) {
 		// Generate new private key
-		if (LDAPManager::generateClientCertificatePrivateKey(m_base->certPrivateKeyFileName->url(), &errorstring) != 0) {
+		// FIXME
+		// Make RSA private key length user-configurable (currently locked to 2048 bits)
+		if (LDAPManager::generateClientCertificatePrivateKey(m_base->certPrivateKeyFileName->url(), 2048, &errorstring) != 0) {
 			KMessageBox::sorry(this, i18n("<qt><b>Unable to generate new private key</b><p>Details: %1</qt>").arg(errorstring), i18n("Unable to Obtain Certificate"));
 			return;
 		}
