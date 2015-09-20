@@ -81,6 +81,8 @@ UserConfigDialog::UserConfigDialog(LDAPUserInfo user, LDAPConfig* parent, const 
 	connect(m_base->certGenPrivateKey, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
 	connect(m_base->certPrivateKeyFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->certPublicCertFileName, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
+	connect(m_base->enableAutoPIN, TQT_SIGNAL(clicked()), this, TQT_SLOT(processLockouts()));
+	connect(m_base->autoPIN, TQT_SIGNAL(textChanged(const TQString&)), this, TQT_SLOT(processLockouts()));
 	connect(m_base->createCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(createPKICertificate()));
 	connect(m_base->revokeCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(revokePKICertificate()));
 	connect(m_base->downloadCertificate, TQT_SIGNAL(clicked()), this, TQT_SLOT(downloadPKICertificate()));
@@ -243,6 +245,13 @@ void UserConfigDialog::processLockouts() {
 		m_base->passwordMinAge->setEnabled(false);
 	}
 
+	if (m_base->enableAutoPIN->isChecked()) {
+		m_base->autoPIN->setEnabled(true);
+	}
+	else {
+		m_base->autoPIN->setEnabled(false);
+	}
+
 	// Disable the primary group checkbox in the group list
 	TQListViewItemIterator it(m_base->secondary_group_list);
 	while (it.current()) {
@@ -284,6 +293,11 @@ void UserConfigDialog::processLockouts() {
 	}
 	if (!m_base->certGenPrivateKey->isChecked()) {
 		if (!TQFile(m_base->certPrivateKeyFileName->url()).exists()) {
+			ok_enabled = false;
+		}
+	}
+	if (m_base->enableAutoPIN->isChecked()) {
+		if (m_base->autoPIN->text() == "") {
 			ok_enabled = false;
 		}
 	}
@@ -342,7 +356,12 @@ void UserConfigDialog::createPKICertificate() {
 	}
 	caPrivateKeyTempFile.sync();
 
-	ret = LDAPManager::generateClientCertificatePublicCertificate(expirydays, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url());
+	if (m_base->enableAutoPIN->isChecked()) {
+		ret = LDAPManager::generateClientCertificatePublicCertificate(expirydays, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url(), m_base->autoPIN->text());
+	}
+	else {
+		ret = LDAPManager::generateClientCertificatePublicCertificate(expirydays, m_user, realms[m_ldapconfig->m_ldapmanager->realm()], caPrivateKeyTempFile.name(), m_base->certPrivateKeyFileName->url(), m_base->certPublicCertFileName->url());
+	}
 
 	// Delete the private key as soon as possible after certificate signing
 	caPrivateKeyTempFile.unlink();

@@ -935,7 +935,21 @@
 								<number>17</number>
 							</property>
 						</widget>
-						<widget class="KPushButton" row="4" column="0" colspan="5">
+						<widget class="TQCheckBox" row="4" column="0" colspan="2">
+							<property name="name">
+								<cstring>enableAutoPIN</cstring>
+							</property>
+							<property name="text">
+								<cstring>Store PIN in certificate</cstring>
+							</property>
+						</widget>
+						<widget class="KPasswordEdit" row="4" column="2" colspan="3">
+							<property name="name">
+								<cstring>autoPIN</cstring>
+							</property>
+							
+						</widget>
+						<widget class="KPushButton" row="5" column="0" colspan="5">
 							<property name="name">
 								<cstring>createCertificate</cstring>
 							</property>
@@ -943,7 +957,7 @@
 								<string>Generate New PKI Certificate</string>
 							</property>
 						</widget>
-						<widget class="TQLayoutWidget" row="5" column="0" colspan="5">
+						<widget class="TQLayoutWidget" row="6" column="0" colspan="5">
 							<property name="name">
 								<cstring>unnamed_layoutwidget1</cstring>
 							</property>
