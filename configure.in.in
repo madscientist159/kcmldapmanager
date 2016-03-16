@@ -4,3 +4,40 @@ AM_INIT_AUTOMAKE(autostart, 0.1)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
+
+PKG_CHECK_MODULES(KRB5, krb5, have_krb5=yes, have_krb5=no)
+if test "x$have_krb5" = "xno"; then
+  # Try to find krb5 without pkg-config file
+  AC_MSG_CHECKING(krb5)
+  AC_FIND_FILE(krb5.h, [\
+    /usr/local/include/heimdal /usr/local/include \
+    /usr/include/heimdal /usr/include \
+    ], krb5_includes)
+  if test "x$krb5_includes" != "xNO"; then
+    krb5_multiarch="`gcc -print-multiarch 2>/dev/null`"
+    AC_FIND_FILE(libkrb5.so, [\
+        /usr/local/lib/$krb5_multiarch/heimdal /usr/local/lib64/heimdal /usr/local/lib/heimdal \
+        /usr/local/lib/$krb5_multiarch /usr/local/lib64 /usr/local/lib \
+        /usr/lib/$krb5_multiarch/heimdal /usr/lib64/heimdal /usr/lib/heimdal \
+        /usr/lib/$krb5_multiarch /usr/lib64 /usr/lib \
+        ], krb5_libs)
+    if test "x$krb5_libs" != "xNO"; then
+      AC_MSG_RESULT([libraries $krb5_libs, headers $krb5_includes])
+      CPPFLAGS="$CPPFLAGS -I$krb5_includes"
+      CFLAGS="$CFLAGS -I$krb5_includes"
+      LDFLAGS="$LDFLAGS -L$krb5_libs"
+      AC_CHECK_HEADER(krb5.h, have_krb5=yes)
+    fi
+  fi
+  if test "x$have_krb5" != "xno"; then
+    KRB5_CFLAGS="-I$krb5_includes"
+    KRB5_LIBS="-L$krb5_libs -lkrb5"
+    AC_SUBST(KRB5_CFLAGS)
+    AC_SUBST(KRB5_LIBS)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
+if test "x$have_krb5" = "xno"; then
+  AC_MSG_ERROR([krb5 library is needed but not found on our system])
+fi
